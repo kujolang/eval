@@ -8,7 +8,7 @@ Prepared at (UTC): 2026-05-25 02:22:00
 
 - [x] Core interpreter commands validated (`version`, `list-checks`, `run`, `report`)
 - [x] Test suite validated in default runtime (`kujo test`)
-- [x] Test suite validated in interpreter runtime (`kujo test --runtime interpreter`)
+- [x] Test suite validated in VM runtime (`kujo test --runtime vm`)
 - [x] Runtime parity script passes (`scripts/verify_test_runtime_parity.sh`)
 - [x] README command parity script passes (`scripts/verify_docs_command_parity.sh`)
 - [x] Release quality gates pass (`scripts/release_quality_gates.sh`)

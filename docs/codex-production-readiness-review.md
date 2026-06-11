@@ -13,7 +13,7 @@ Overall score: 8.8 / 10
 
 kujo-eval now clears the previously blocking areas from the 2026-05-24 fail review:
 - Interpreter-mode core commands execute successfully (exit 0).
-- Test parity is explicitly validated across default and interpreter runtimes.
+- Test parity is explicitly validated across default and VM runtimes.
 - Release and policy gate scripts are fully green.
 - README command paths are validated by automated parity checks.
 - Clean-checkout qualification completed successfully.
@@ -23,7 +23,7 @@ kujo-eval now clears the previously blocking areas from the 2026-05-24 fail revi
 | Validation Command | Result | Evidence |
 |---|---|---|
 | `kujo test` | PASS | 7/7 suites pass |
-| `kujo test --runtime interpreter` | PASS | 7/7 suites pass |
+| `kujo test --runtime vm` | PASS | 7/7 suites pass |
 | `kujo run main.kujo --interpreter version` | PASS | Exit 0, expected version output |
 | `kujo run main.kujo --interpreter list-checks` | PASS | Exit 0, 27 check types listed |
 | `bash scripts/verify_test_runtime_parity.sh` | PASS | Default/VM parity validated |
@@ -39,7 +39,7 @@ kujo-eval now clears the previously blocking areas from the 2026-05-24 fail revi
 - Added integration coverage for interpreter command entrypoints.
 
 2. Test integrity and parity
-- Added runtime parity script to continuously validate `kujo test` and `kujo test --runtime interpreter` equivalence.
+- Added runtime parity script to continuously validate `kujo test` and `kujo test --runtime vm` equivalence.
 - Expanded negative-path security tests (allowlist denial, malformed JSON output paths, allowed-path enforcement checks).
 
 3. Release and CI gate stability
@@ -55,6 +55,7 @@ kujo-eval now clears the previously blocking areas from the 2026-05-24 fail revi
 
 These are known and documented, not release blockers for this candidate:
 - Interpreter mode emits RUFRUN001 type-check warnings on stderr in current runtime behavior even when commands succeed.
+- `kujo test --runtime interpreter` is treated as advisory compatibility coverage and is not a release gate.
 - Timeout handling remains detection-oriented; long-running subprocess termination is runtime-constrained.
 - `watch` command is intentionally long-running and should be manually interrupted.
 

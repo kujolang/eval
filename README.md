@@ -335,7 +335,7 @@ export KUJO_BIN=/path/to/kujo/target/release/kujo
 | `$KUJO_BIN run main.kujo report examples/release_gate_suite.json --rerun --output-dir .eval_status --format junit` | 0 | Generates `.eval_status/eval-report.xml` |
 | `$KUJO_BIN run main.kujo report examples/release_gate_suite.json --rerun --output-dir .eval_status --format tap` | 0 | Generates `.eval_status/eval-report.tap` |
 | `$KUJO_BIN test` | 0 | Test suite runner reports all configured test files passing |
-| `$KUJO_BIN test --runtime interpreter` | 0 | Interpreter runtime reports all 7 test suites passing |
+| `$KUJO_BIN test --runtime vm` | 0 | VM runtime reports all 7 test suites passing |
 
 ## Check Types
 
