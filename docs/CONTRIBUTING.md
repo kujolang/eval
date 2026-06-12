@@ -6,6 +6,13 @@
 2. Run tests: `kujo test` (from the repo root)
 3. Run CLI smoke: `kujo run main.kujo version`
 
+## Example And Search Hygiene
+
+- Prefer canonical, copyable examples when adding docs or onboarding snippets: `examples/release_gate_suite.json`, the three `examples/enterprise_*_gate.json` suites, and the strict/sandbox policy examples.
+- Treat `examples/basic_suite.json` as an expected-fail reporting demo, not a normal passing quickstart.
+- Treat `examples/large_suite_fixture.json`, `examples/io_heavy_regression_suite.json`, `examples/fixtures/`, `eval_results/`, and `tests/*.out` as fixtures or generated/bulk output unless the task explicitly targets them.
+- Keep examples direct and token-efficient. Use tests for exhaustive coverage; use examples to model the idioms agents should copy.
+
 ## Development Workflow
 
 ### Adding a New Check Type

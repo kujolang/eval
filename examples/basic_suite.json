@@ -1,6 +1,6 @@
 {
   "name": "basic-eval-suite",
-  "description": "Demonstrates the core eval check types for CLI and file testing.",
+  "description": "Expected-fail intro suite: demonstrates core eval checks and includes one deliberate failure for report demos.",
   "version": "1.0.0",
   "output_dir": "./eval_results",
   "snapshot_dir": "./snapshots",
@@ -85,7 +85,7 @@
       }
     },
     {
-      "name": "deliberate failure example",
+      "name": "expected-fail deliberate failure example",
       "description": "This test intentionally fails to show failure reporting.",
       "check": "command_fails",
       "params": {

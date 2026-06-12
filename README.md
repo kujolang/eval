@@ -18,6 +18,10 @@ Spec defines what should happen. Eval checks whether the work actually produced 
 
 Eval is part of Kujo’s Control layer: measurable outcomes, repeatable checks, reviewable reports, and machine-readable evidence.
 
+Prioritize copyable examples over tests: examples should model the most token-efficient idioms we want agents to imitate.
+
+Exclude generated/bulk paths from the main sweep unless the task explicitly targets them; document the search exclusions you used.
+
 ## Why This Exists
 
 Every serious AI-native ecosystem needs evaluations. Without evals, agents are vibes. With evals, agents become software components that can be tested, trusted, compared, and improved.
@@ -223,81 +227,61 @@ Suggested rollout:
 
 Eval fills a gap: it's a **deterministic, zero-dependency, AI-native evaluation framework** that tests outcomes (commands, files, JSON, HTTP) rather than code units. It's designed for agents, CLIs, and workflow outputs — not traditional unit tests.
 
-## Quick Wins — Copy-Paste Examples
+## Canonical Examples
 
-Three ready-to-use `eval.json` suites for common scenarios:
+Use these as the canonical copy-paste examples before mining tests, generated artifacts, or historical checklists:
 
 | Use Case | File | What It Tests |
 |----------|------|---------------|
+| Minimal release gate | [`examples/release_gate_suite.json`](examples/release_gate_suite.json) | Small passing suite for smoke tests, docs parity, and automation examples |
 | Enterprise CLI quality gate | [`examples/enterprise_cli_quality_gate.json`](examples/enterprise_cli_quality_gate.json) | Policy-first CLI behavior checks, output assertions, repository file guards |
 | Enterprise API contract gate | [`examples/enterprise_api_contract_gate.json`](examples/enterprise_api_contract_gate.json) | Fixture-backed API contract validation, JSON shape/value assertions, parallel file checks |
 | Enterprise agent output gate | [`examples/enterprise_agent_output_gate.json`](examples/enterprise_agent_output_gate.json) | Policy-first agent output validation for structure/content/confidence and timing |
 | Enterprise policy baseline | [`examples/policy_profile_release_gate.json`](examples/policy_profile_release_gate.json) | Profile-driven command/path/env policy defaults |
 | Strict-enterprise policy example | [`examples/strict_enterprise_policy_gate.json`](examples/strict_enterprise_policy_gate.json) | Minimum-privilege command/path/env allowlists with redaction audit defaults |
 | Sandbox-adjacent policy example | [`examples/sandbox_adjacent_policy_gate.json`](examples/sandbox_adjacent_policy_gate.json) | Constrained local policy boundaries for fixture-only command and file access |
-| Mixed large-suite accounting | [`examples/large_suite_fixture.json`](examples/large_suite_fixture.json) | Tags, dependencies, retries, skip behavior |
+| Expected-fail intro suite | [`examples/basic_suite.json`](examples/basic_suite.json) | Core checks plus one deliberate failing case for report demos |
+| Bulk accounting fixture | [`examples/large_suite_fixture.json`](examples/large_suite_fixture.json) | Tags, dependencies, retries, skip behavior; useful for fixtures, not first-copy examples |
 
 Replace placeholders (URLs, file paths, tool names) with your actual values and run immediately.
+
+Generated and bulk paths are intentionally not canonical examples: avoid `eval_results/`, `tests/*.out`, `examples/fixtures/contracts/`, and large stress/performance suites unless you are validating artifact shape, snapshots, or scale behavior.
 
 See architecture and lifecycle diagrams in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ## Quick Start
 
+Minimal runnable path from a clean checkout:
+
 ```bash
-# Initialize an eval suite
-kujo run main.kujo init --name my-suite
-
-# Run the suite (with optional flags)
-kujo run main.kujo run
-
-# Run with filtering and HTML output
-kujo run main.kujo run --filter auth --format html
-
-# Run quietly (CI mode — summary only)
-kujo run main.kujo run --quiet --json
-
-# Run with a compact one-line human summary
-kujo run main.kujo run --summary-only
-
-# Run explicit suite with isolated output directory (recommended for scripts)
 kujo run main.kujo run examples/release_gate_suite.json --output-dir .eval_quickstart --json
+```
 
-# Enterprise quickstart bundles (policy-first)
-kujo run main.kujo run examples/enterprise_cli_quality_gate.json --output-dir .eval_enterprise_cli --json
-kujo run main.kujo run examples/enterprise_api_contract_gate.json --output-dir .eval_enterprise_api --parallel-workers 8 --json
-kujo run main.kujo run examples/enterprise_agent_output_gate.json --output-dir .eval_enterprise_agent --parallel-workers 8 --json
-kujo run main.kujo run examples/strict_enterprise_policy_gate.json --output-dir .eval_enterprise_strict --json
-kujo run main.kujo run examples/sandbox_adjacent_policy_gate.json --output-dir .eval_sandbox_adjacent --json
+Expected output signal:
 
-# Emit machine summary channel to an explicit path for automation
-kujo run main.kujo run examples/release_gate_suite.json --output-dir .eval_quickstart --summary-channel-path .eval_quickstart/run-channel.json --json
+```json
+{"ok":true}
+```
 
-# Generate report artifacts (md/html/junit/tap/ndjson)
-kujo run main.kujo report --format html
-kujo run main.kujo report --format junit
-kujo run main.kujo report --format tap
+Common follow-ups:
 
-# Re-run and report explicit suite using isolated output directory
-kujo run main.kujo report examples/release_gate_suite.json --rerun --output-dir .eval_quickstart --json
+```bash
+# Compact human summary
+kujo run main.kujo run examples/release_gate_suite.json --output-dir .eval_quickstart --summary-only
 
-# Emit report machine summary channel to an explicit path
-kujo run main.kujo report examples/release_gate_suite.json --rerun --output-dir .eval_quickstart --summary-channel-path .eval_quickstart/report-channel.json --json
+# HTML report artifact
+kujo run main.kujo report examples/release_gate_suite.json --rerun --output-dir .eval_quickstart --format html
 
-# Enable manifest checksums and verify artifact integrity
+# Manifest checksum verification
 kujo run main.kujo run examples/release_gate_suite.json --output-dir .eval_quickstart --artifact-checksums --json
 kujo run main.kujo verify-manifest --output-dir .eval_quickstart --json
 
-# List available check types
+# Discover command/check surface
 kujo run main.kujo list-checks
-
-# Print contract version
 kujo run main.kujo version
-
-# Explain effective policy overlays
-kujo run main.kujo policy-explain examples/release_gate_suite.json --policy-stage release --json
 ```
 
-`init` scaffolds a starter suite; edit the generated file before you rely on `validate` or `run`.
+`init` scaffolds a starter suite; edit the generated file before using it as a gate.
 
 ## Enterprise Quickstart Matrix (Risk Tiers)
 

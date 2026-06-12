@@ -205,6 +205,28 @@ if path_exists(p) { ... }
 
 ## Workflow Lessons
 
+### Search hygiene and canonical examples
+
+Prioritize copyable examples over tests: examples should model the most token-efficient idioms we want agents to imitate.
+
+Start with canonical, runnable examples before reading tests or historical checklist docs:
+
+- `examples/release_gate_suite.json`: minimal passing smoke suite.
+- `examples/enterprise_cli_quality_gate.json`: CLI quality gate pattern.
+- `examples/enterprise_api_contract_gate.json`: fixture-backed API contract pattern.
+- `examples/enterprise_agent_output_gate.json`: agent output validation pattern.
+- `examples/strict_enterprise_policy_gate.json`: strict policy profile pattern.
+- `examples/sandbox_adjacent_policy_gate.json`: constrained fixture-only policy pattern.
+
+Exclude generated/bulk paths from the main sweep unless the task explicitly targets them; document the search exclusions you used. Default exclusions:
+
+- `eval_results/`
+- `tests/*.out`
+- `examples/fixtures/contracts/`
+- `.eval_*`
+
+Treat `examples/basic_suite.json` as an expected-fail intro/reporting demo because it intentionally includes a failing check. Treat `examples/large_suite_fixture.json` and `examples/io_heavy_regression_suite.json` as scale/fixture inputs, not first-copy onboarding examples.
+
 ### Test runner: `kujo test` vs `kujo run`
 
 - `kujo test` runs tests in VM-primary dual mode. Works reliably for contract tests.
