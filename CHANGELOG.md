@@ -15,6 +15,8 @@
 - Added incremental report generation controls via `save_report_with_options` and command-level `--incremental` support.
 
 ### TWEAK
+- Compacted CLI help rendering in `src/cli.kujo` behind a local `print_lines` helper while preserving the rendered help text.
+- Updated README count verification to tolerate compact help text storage instead of requiring one literal `print(...)` call per help row.
 - Extended `scripts/verify_docs_command_parity.sh` to validate strict-enterprise and sandbox-adjacent quickstart bundles.
 - Extended `scripts/verify_docs_command_parity.sh` to validate the Scout ecosystem import path (`init --from-scout`) and broadened parity reporting to docs-wide scope.
 - Added `.dockerignore` defaults to keep VCS metadata, transient eval outputs, and logs out of container build context.
@@ -49,6 +51,9 @@
 - Added CI guard to reject tracked `tests/*.out` artifacts.
 
 ### DOCS
+- Added canonical-example and generated/bulk search hygiene guidance for agents and contributors.
+- Shortened the README quick start to a minimal runnable path with expected output signals.
+- Labeled `examples/basic_suite.json` as an expected-fail reporting demo.
 - Added VM-first migration guidance for legacy interpreter-era commands in `README.md`.
 - Added migration notes in `docs/agent-notes.md` and `docs/eval-suite-reference.md` to keep command guidance internally consistent.
 - Added enterprise quickstart risk-tier matrices and copy/paste profile guidance in `README.md`, `docs/QUICKREF.md`, and `docs/COOKBOOK.md`.
