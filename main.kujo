@@ -138,6 +138,31 @@ func join_string_array(values) {
 	return out
 }
 
+func print_lines(lines) {
+	i := 0
+	while i < len(lines) {
+		print(lines[i])
+		i := i + 1
+	}
+}
+
+func print_kv(label, value) {
+	print("  " + label + ": " + value)
+}
+
+func print_usage_error(message, usage) {
+	print("Error: " + message)
+	print("Usage: " + usage)
+}
+
+func print_bullet_items(items) {
+	i := 0
+	while i < len(items) {
+		print("  - " + items[i])
+		i := i + 1
+	}
+}
+
 func trim_history_entries(history, max_entries) {
 	if type(history) != "array" {
 		return []
@@ -464,8 +489,7 @@ func command_run(parsed) {
 	}
 
 	if is_json == false {
-		print("Running eval suite: " + config_path)
-		print("")
+		print_lines(["Running eval suite: " + config_path, ""])
 	}
 
 	filter_val := normalize_string(dict_get_or(flags, "filter", ""), "")
@@ -750,8 +774,7 @@ func command_report(parsed) {
 				raw := read_file(history_path)
 				history := parse_json(raw)
 				if type(history) == "array" {
-					print("Run History (" + to_string(len(history)) + " entries):")
-					print("")
+					print_lines(["Run History (" + to_string(len(history)) + " entries):", ""])
 					hi := 0
 					while hi < len(history) {
 						entry := history[hi]
@@ -761,7 +784,7 @@ func command_report(parsed) {
 							total := dict_get_or(entry, "total", 0)
 							rate := 0
 							if total > 0 { rate = (passed * 100) / total }
-							print("  " + name + ": " + to_string(passed) + "/" + to_string(total) + " (" + to_string(rate) + "%)")
+							print_kv(name, to_string(passed) + "/" + to_string(total) + " (" + to_string(rate) + "%)")
 						}
 						hi := hi + 1
 					}
@@ -903,17 +926,18 @@ func command_report(parsed) {
 		})))
 	} else {
 		print_report(results, dict_get_or(flags, "format", "md"))
-		print("")
+		report_lines := [""]
 		if loaded_from_cache {
-			print("(Report generated from cached results. Use --rerun to re-execute.)")
+			report_lines = push(report_lines, "(Report generated from cached results. Use --rerun to re-execute.)")
 		}
 		if bool_flag(dict_get_or(save_data, "cached", false), false) {
-			print("(Report artifact unchanged; existing file retained.)")
+			report_lines = push(report_lines, "(Report artifact unchanged; existing file retained.)")
 		}
 		if bool_flag(dict_get_or(save_data, "incremental_mode", false), false) {
-			print("(Incremental report mode enabled.)")
+			report_lines = push(report_lines, "(Incremental report mode enabled.)")
 		}
-		print("Report saved to: " + dict_get_or(save_data, "path", ""))
+		report_lines = push(report_lines, "Report saved to: " + dict_get_or(save_data, "path", ""))
+		print_lines(report_lines)
 	}
 }
 
@@ -921,8 +945,7 @@ func command_compare(parsed) {
 	positionals := parsed["positionals"]
 
 	if len(positionals) < 3 {
-		print("Error: compare requires two result JSON files")
-		print("Usage: eval compare <results-a.json> <results-b.json>")
+		print_usage_error("compare requires two result JSON files", "eval compare <results-a.json> <results-b.json>")
 		exit(1)
 	}
 
@@ -957,13 +980,8 @@ func command_compare(parsed) {
 
 func command_list_checks() {
 	checks := KNOWN_CHECKS()
-	print("Available check types:")
-	print("")
-	i := 0
-	while i < len(checks) {
-		print("  - " + checks[i])
-		i := i + 1
-	}
+	print_lines(["Available check types:", ""])
+	print_bullet_items(checks)
 	print("")
 	print("Total: " + to_string(len(checks)) + " check types")
 }
@@ -985,13 +1003,8 @@ func command_snapshots(parsed) {
 		snaps = []
 	}
 
-	print("Snapshots (" + to_string(len(snaps)) + "):")
-	print("")
-	i := 0
-	while i < len(snaps) {
-		print("  - " + snaps[i])
-		i := i + 1
-	}
+	print_lines(["Snapshots (" + to_string(len(snaps)) + "):", ""])
+	print_bullet_items(snaps)
 }
 
 func command_export(parsed) {
@@ -1031,8 +1044,10 @@ func command_export(parsed) {
 }
 
 func command_version() {
-	print("Eval v" + contract_version())
-	print("Contract version: " + contract_version())
+	print_lines([
+		"Eval v" + contract_version(),
+		"Contract version: " + contract_version()
+	])
 }
 
 func command_verify_manifest(parsed) {
@@ -1048,12 +1063,12 @@ func command_verify_manifest(parsed) {
 		if result["ok"] {
 			data := dict_get_or(result, "data", {})
 			print("Manifest checksum verification passed")
-			print("  path: " + normalize_string(dict_get_or(data, "path", manifest_path), manifest_path))
-			print("  algorithm: " + normalize_string(dict_get_or(data, "algorithm", "sha256"), "sha256"))
-			print("  verified_count: " + to_string(dict_get_or(data, "verified_count", 0)))
+			print_kv("path", normalize_string(dict_get_or(data, "path", manifest_path), manifest_path))
+			print_kv("algorithm", normalize_string(dict_get_or(data, "algorithm", "sha256"), "sha256"))
+			print_kv("verified_count", to_string(dict_get_or(data, "verified_count", 0)))
 		} else {
 			print("Manifest checksum verification failed")
-			print("  error: " + normalize_string(dict_get_or(result, "error", "Unknown verification error"), "Unknown verification error"))
+			print_kv("error", normalize_string(dict_get_or(result, "error", "Unknown verification error"), "Unknown verification error"))
 		}
 	}
 
@@ -1069,22 +1084,28 @@ func command_completion(parsed) {
 	cmds := "init run report compare list-checks snapshots version watch lint policy-explain diff export verify-manifest"
 
 	if shell == "bash" {
-		print("# Bash completion for eval")
-		print("_eval_completion() {")
-		print("  local cur=$" + "{COMP_WORDS[COMP_CWORD]}")
-		print("  COMPREPLY=( $" + "(compgen -W \"" + cmds + "\" -- $" + "cur) )")
-		print("}")
-		print("complete -F _eval_completion eval")
+		print_lines([
+			"# Bash completion for eval",
+			"_eval_completion() {",
+			"  local cur=$" + "{COMP_WORDS[COMP_CWORD]}",
+			"  COMPREPLY=( $" + "(compgen -W \"" + cmds + "\" -- $" + "cur) )",
+			"}",
+			"complete -F _eval_completion eval"
+		])
 	} else if shell == "zsh" {
-		print("# Zsh completion for eval")
-		print("#compdef eval")
-		print("_eval() {")
-		print("  _arguments '1: :(" + cmds + ")'")
-		print("}")
+		print_lines([
+			"# Zsh completion for eval",
+			"#compdef eval",
+			"_eval() {",
+			"  _arguments '1: :(" + cmds + ")'",
+			"}"
+		])
 	} else {
-		print("# Fish completion for eval")
-		print("complete -c eval -f")
-		print("complete -c eval -a '" + cmds + "'")
+		print_lines([
+			"# Fish completion for eval",
+			"complete -c eval -f",
+			"complete -c eval -a '" + cmds + "'"
+		])
 	}
 }
 
@@ -1093,8 +1114,7 @@ func command_diff(parsed) {
 	positionals := parsed["positionals"]
 
 	if len(positionals) < 3 {
-		print("Error: diff requires two file paths")
-		print("Usage: eval diff <file-a> <file-b>")
+		print_usage_error("diff requires two file paths", "eval diff <file-a> <file-b>")
 		exit(1)
 	}
 
@@ -1110,8 +1130,8 @@ func command_diff(parsed) {
 		print("Files are identical.")
 	} else {
 		print("Files differ:")
-		print("  " + path_a + ": " + to_string(len(content_a)) + " bytes")
-		print("  " + path_b + ": " + to_string(len(content_b)) + " bytes")
+		print_kv(path_a, to_string(len(content_a)) + " bytes")
+		print_kv(path_b, to_string(len(content_b)) + " bytes")
 		exit(1)
 	}
 }
@@ -1162,8 +1182,10 @@ func command_lint(parsed) {
 	data := dict_get_or(result, "data", {})
 	cfg := dict_get_or(data, "config", {})
 	test_count := len(dict_get_or(cfg, "tests", []))
-	print("✅ Config is valid: " + normalize_string(dict_get_or(cfg, "name", ""), "unnamed") + " (" + to_string(test_count) + " tests)")
-	print("   diagnostics: 0 errors, 0 warnings")
+	print_lines([
+		"✅ Config is valid: " + normalize_string(dict_get_or(cfg, "name", ""), "unnamed") + " (" + to_string(test_count) + " tests)",
+		"   diagnostics: 0 errors, 0 warnings"
+	])
 }
 
 func command_policy_explain(parsed) {
@@ -1206,23 +1228,23 @@ func command_policy_explain(parsed) {
 
 	effective := dict_get_or(policy_view, "effective_policy", {})
 	print("Policy Explain")
-	print("  suite: " + normalize_string(dict_get_or(policy_view, "suite_name", ""), "unnamed"))
-	print("  profile: " + normalize_string(dict_get_or(policy_view, "policy_profile", ""), "(none)"))
-	print("  stage: " + normalize_string(dict_get_or(policy_view, "active_policy_stage", ""), "(none)"))
-	print("  stage_overlay_applied: " + to_string(dict_get_or(policy_view, "stage_overlay_applied", false)))
-	print("  require_command_policy: " + to_string(dict_get_or(effective, "require_command_policy", false)) + " (enforced=" + to_string(dict_get_or(policy_view, "strict_command_policy_enforced", false)) + ")")
-	print("  path_policy_mode: " + normalize_string(dict_get_or(effective, "path_policy_mode", "open"), "open") + " (enforced=" + to_string(dict_get_or(policy_view, "path_allowlist_enforced", false)) + ")")
-	print("  command_pattern_match_mode: " + normalize_string(dict_get_or(effective, "command_pattern_match_mode", "substring"), "substring"))
-	print("  redaction_audit_mode: " + to_string(dict_get_or(effective, "redaction_audit_mode", false)))
-	print("  allowed_commands: " + join_string_array(dict_get_or(effective, "allowed_commands", [])))
-	print("  allowed_command_patterns: " + join_string_array(dict_get_or(effective, "allowed_command_patterns", [])))
-	print("  blocked_arg_patterns: " + join_string_array(dict_get_or(effective, "blocked_arg_patterns", [])))
-	print("  redact_output_patterns: " + join_string_array(dict_get_or(effective, "redact_output_patterns", [])))
-	print("  allowed_paths: " + join_string_array(dict_get_or(effective, "allowed_paths", [])))
-	print("  allowed_http_hosts: " + join_string_array(dict_get_or(effective, "allowed_http_hosts", [])))
-	print("  blocked_http_hosts: " + join_string_array(dict_get_or(effective, "blocked_http_hosts", [])))
-	print("  allowed_env_vars: " + join_string_array(dict_get_or(effective, "allowed_env_vars", [])))
-	print("  risk_tier: " + normalize_string(dict_get_or(policy_view, "risk_tier", "low"), "low") + " (score=" + to_string(dict_get_or(policy_view, "risk_score", 0)) + ")")
+	print_kv("suite", normalize_string(dict_get_or(policy_view, "suite_name", ""), "unnamed"))
+	print_kv("profile", normalize_string(dict_get_or(policy_view, "policy_profile", ""), "(none)"))
+	print_kv("stage", normalize_string(dict_get_or(policy_view, "active_policy_stage", ""), "(none)"))
+	print_kv("stage_overlay_applied", to_string(dict_get_or(policy_view, "stage_overlay_applied", false)))
+	print_kv("require_command_policy", to_string(dict_get_or(effective, "require_command_policy", false)) + " (enforced=" + to_string(dict_get_or(policy_view, "strict_command_policy_enforced", false)) + ")")
+	print_kv("path_policy_mode", normalize_string(dict_get_or(effective, "path_policy_mode", "open"), "open") + " (enforced=" + to_string(dict_get_or(policy_view, "path_allowlist_enforced", false)) + ")")
+	print_kv("command_pattern_match_mode", normalize_string(dict_get_or(effective, "command_pattern_match_mode", "substring"), "substring"))
+	print_kv("redaction_audit_mode", to_string(dict_get_or(effective, "redaction_audit_mode", false)))
+	print_kv("allowed_commands", join_string_array(dict_get_or(effective, "allowed_commands", [])))
+	print_kv("allowed_command_patterns", join_string_array(dict_get_or(effective, "allowed_command_patterns", [])))
+	print_kv("blocked_arg_patterns", join_string_array(dict_get_or(effective, "blocked_arg_patterns", [])))
+	print_kv("redact_output_patterns", join_string_array(dict_get_or(effective, "redact_output_patterns", [])))
+	print_kv("allowed_paths", join_string_array(dict_get_or(effective, "allowed_paths", [])))
+	print_kv("allowed_http_hosts", join_string_array(dict_get_or(effective, "allowed_http_hosts", [])))
+	print_kv("blocked_http_hosts", join_string_array(dict_get_or(effective, "blocked_http_hosts", [])))
+	print_kv("allowed_env_vars", join_string_array(dict_get_or(effective, "allowed_env_vars", [])))
+	print_kv("risk_tier", normalize_string(dict_get_or(policy_view, "risk_tier", "low"), "low") + " (score=" + to_string(dict_get_or(policy_view, "risk_score", 0)) + ")")
 	risk_hints := dict_get_or(policy_view, "risk_hints", [])
 	if type(risk_hints) == "array" && len(risk_hints) > 0 {
 		print("  risk_hints:")
@@ -1248,9 +1270,11 @@ func command_watch(parsed) {
 	max_loops := normalize_int(dict_get_or(flags, "max-loops", 500), 500)
 	if max_loops <= 0 { max_loops = 1 }
 
-	print("Watching " + config_path + " for changes (polling every " + to_string(poll_ms) + "ms, max loops " + to_string(max_loops) + ")...")
-	print("Press Ctrl+C to stop.")
-	print("")
+	print_lines([
+		"Watching " + config_path + " for changes (polling every " + to_string(poll_ms) + "ms, max loops " + to_string(max_loops) + ")...",
+		"Press Ctrl+C to stop.",
+		""
+	])
 
 	if path_exists(config_path) == false {
 		print("Config file not found: " + config_path)
@@ -1345,8 +1369,7 @@ if subcommand == "init" {
 	command_completion(parsed)
 	exit(0)
 } else {
-	print("Unknown command: " + subcommand)
-	print("")
+	print_lines(["Unknown command: " + subcommand, ""])
 	print_help()
 	exit(1)
 }

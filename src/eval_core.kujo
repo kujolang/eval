@@ -79,6 +79,38 @@ func normalize_filter_values(values) {
 	return normalized
 }
 
+func print_kv(label, value) {
+	print("  " + label + ": " + value)
+}
+
+func print_bullet_items(items) {
+	i := 0
+	while i < len(items) {
+		print("  - " + items[i])
+		i := i + 1
+	}
+}
+
+func print_test_status(test_passed, test_name, check_msg, no_color) {
+	pass_label := "[PASS]"
+	fail_label := "[FAIL]"
+	if no_color {
+		pass_label = "PASS"
+		fail_label = "FAIL"
+	}
+	if test_passed {
+		print(pass_label + " " + test_name)
+	} else {
+		print(fail_label + " " + test_name + " — " + check_msg)
+	}
+}
+
+func print_verbose_check_details(check_details) {
+	for key in keys(check_details) {
+		print_kv(key, to_json(check_details[key]))
+	}
+}
+
 func push_unique_string(values, value) {
 	if type(values) != "array" {
 		values = []
@@ -949,21 +981,9 @@ func try_run_parallel_file_fastpath(tests, config, runtime_opts) {
 		})
 
 		if quiet_mode == false {
-			pass_label := "[PASS]"
-			fail_label := "[FAIL]"
-			if no_color {
-				pass_label = "PASS"
-				fail_label = "FAIL"
-			}
-			if test_passed {
-				print(pass_label + " " + test_name)
-			} else {
-				print(fail_label + " " + test_name + " — " + check_msg)
-			}
+			print_test_status(test_passed, test_name, check_msg, no_color)
 			if verbose_mode {
-				for key in keys(check_details) {
-					print("  " + key + ": " + to_json(check_details[key]))
-				}
+				print_verbose_check_details(check_details)
 			}
 		}
 
@@ -1091,10 +1111,10 @@ export func run_suite(config_path, options) {
 			if type(td) == "dict" {
 				tn := normalize_string(dict_get_or(td, "name", ""), "test_" + to_string(ti))
 				names := push(names, tn)
-				print("  - " + tn)
 			}
 			ti := ti + 1
 		}
+		print_bullet_items(names)
 		print("Dry run: " + to_string(len(names)) + " tests would be executed")
 		return make_result(true, "", {
 			"suite_name": normalize_string(dict_get_or(config, "name", ""), "unnamed"),
@@ -1534,18 +1554,9 @@ export func run_suite(config_path, options) {
 				test_results := push(test_results, result_entry)
 
 				if quiet_mode == false {
-					pass_label := "[PASS]"
-					fail_label := "[FAIL]"
-					if no_color { pass_label = "PASS"; fail_label = "FAIL" }
-					if test_passed {
-						print(pass_label + " " + test_name)
-					} else {
-						print(fail_label + " " + test_name + " — " + check_msg)
-					}
+					print_test_status(test_passed, test_name, check_msg, no_color)
 					if verbose_mode {
-						for key in keys(check_details) {
-							print("  " + key + ": " + to_json(check_details[key]))
-						}
+						print_verbose_check_details(check_details)
 					}
 				}
 
