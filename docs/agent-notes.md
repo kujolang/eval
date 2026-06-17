@@ -227,6 +227,12 @@ Exclude generated/bulk paths from the main sweep unless the task explicitly targ
 
 Treat `examples/basic_suite.json` as an expected-fail intro/reporting demo because it intentionally includes a failing check. Treat `examples/large_suite_fixture.json` and `examples/io_heavy_regression_suite.json` as scale/fixture inputs, not first-copy onboarding examples.
 
+### CLI output readability
+
+When editing CLI-style Kujo output, keep rendered text stable and reduce repetition with tiny local helpers once a pattern appears several times. Prefer `print_lines([...])` for static blocks, `print_bullet_items(items)` for `  - ...` lists, `print_kv(label, value)` for indented label/value reports, and `print_usage_error(message, usage)` for two-line usage failures.
+
+Keep first-run examples direct, and do not hide the command behavior behind generic renderers. Leave tests, fixtures, generated docs, and expected-output files explicit unless a source change requires aligned updates.
+
 ### Test runner: `kujo test` vs `kujo run`
 
 - `kujo test` runs tests in VM-primary dual mode. Works reliably for contract tests.
