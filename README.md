@@ -249,6 +249,22 @@ Generated and bulk paths are intentionally not canonical examples: avoid `eval_r
 
 See architecture and lifecycle diagrams in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
+## Repository Layout
+
+The implementation lives in `src/`; the root stays intentionally small and runtime-facing:
+
+| Path | Purpose |
+|------|---------|
+| `main.kujo` | Canonical CLI entrypoint for `kujo run main.kujo ...`; keep at root so examples, scripts, package metadata, and CI share one invocation. |
+| `src/` | CLI parsing, config validation, check implementations, suite execution, reports, snapshots, and shared utilities. |
+| `examples/` | Copyable suites and deterministic fixtures. |
+| `tests/` | Contract, security, CLI, quality, stress, benchmark, and coverage suites. |
+| `schema/` | JSON Schema contract for suite authors and editor integrations. |
+| `scripts/` | Release gates, docs parity checks, command inventory generation, and artifact-contract verification. |
+| `docs/` | Deep references, runbooks, architecture, and session handoff checklists. |
+
+Root copies of `README.md`, `SECURITY.md`, `CONTRIBUTING.md`, `LICENSE`, package manifests, `Dockerfile`, and `RUNTIME_VERSION` are kept for GitHub/package-manager conventions. Generated outputs such as `eval_results/`, `.eval_*`, `snapshots/`, and `tests/*.out` are ignored.
+
 ## Quick Start
 
 Minimal runnable path from a clean checkout:
@@ -298,6 +314,16 @@ Policy visibility and command inventory for onboarding:
 kujo run main.kujo policy-explain examples/release_gate_suite.json --policy-stage release --json
 bash scripts/generate_command_inventory.sh --check
 ```
+
+Named path-policy profiles reduce boilerplate for staged hardening:
+
+| Profile | Effect |
+|---|---|
+| `open` | Leaves path policy open; use only for local exploration or externally sandboxed runs. |
+| `ci-restricted` | Enables `allowlist-required` and permits common repository-owned docs, schema, examples, source, and tests paths. |
+| `release-deny-default` | Enables `allowlist-required` with a narrow release artifact/fixture/schema allowlist; add explicit `allowed_paths` for anything else. |
+
+Profiles can be set as top-level `path_policy_profile` defaults or inside `policy_stage_overlays.<stage>.path_policy_profile`; explicit `path_policy_mode` and `allowed_paths` override profile defaults.
 
 ## Repository Status (Validated Commands)
 

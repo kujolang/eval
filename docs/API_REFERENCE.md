@@ -37,6 +37,8 @@ Generated from `describe_*_module()` functions (contract v2.0.0).
 - `lint_config_file(path)` — Returns structured lint diagnostics with code/location/suggested fix
 - `policy_explain_config(cfg, stage)` — Returns effective merged policy view for local/ci/release stage
 
+Policy helpers normalize `policy_profile` and `path_policy_profile` values into the effective command/path/env policy consumed by the runner. Supported path profiles are `open`, `ci-restricted`, and `release-deny-default`; explicit `path_policy_mode` or `allowed_paths` values override profile defaults.
+
 ## `src/checks.kujo` — Check Implementations
 
 **Exports**: `run_check`, `run_shell`, `run_shell_timed`, `is_command_safe`, `is_path_safe`, `redact_sensitive`

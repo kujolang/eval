@@ -125,6 +125,11 @@ kujo test
 | Tier 3 (release gate) | High-assurance release policy checks | `kujo run main.kujo run examples/strict_enterprise_policy_gate.json --output-dir .eval_enterprise_strict --json` |
 | Tier 3 (sandbox-adjacent) | Constrained fixture-only local policy boundaries | `kujo run main.kujo run examples/sandbox_adjacent_policy_gate.json --output-dir .eval_sandbox_adjacent --json` |
 
+Path profiles:
+- `open`: local exploration only; no path allowlist.
+- `ci-restricted`: `allowlist-required` with common repo-owned docs/source/tests/examples/schema paths.
+- `release-deny-default`: `allowlist-required` with a narrow release artifact, fixture, schema, and signoff allowlist.
+
 ```bash
 # Inspect effective policy overlays for an explicit stage
 kujo run main.kujo policy-explain examples/release_gate_suite.json --policy-stage release --json

@@ -29,7 +29,9 @@ Additional command policy controls:
 
 Path policy controls:
 - `path_policy_mode`: top-level path mode (`open` or `allowlist-required`)
+- `path_policy_profile`: named path preset (`open`, `ci-restricted`, `release-deny-default`) that expands `path_policy_mode` and `allowed_paths`
 - `policy_stage_overlays.<stage>.path_policy_mode`: stage-specific path mode overrides
+- `policy_stage_overlays.<stage>.path_policy_profile`: stage-specific path preset for local/CI/release hardening
 - `allowed_paths`: explicit path allowlist for file-backed checks when `path_policy_mode` is `allowlist-required`
 
 ## Enterprise Deployment Patterns
@@ -39,7 +41,7 @@ Eval is intended for controlled execution environments. For enterprise rollout, 
 1. **Isolated execution**: run suites in ephemeral containers or isolated CI workers.
 2. **Least privilege**: mount only required directories and avoid privileged runner accounts.
 3. **Policy-first suites**: set suite-level `allowed_commands`, `allowed_command_patterns`, `blocked_arg_patterns`, `allowed_paths`, and `allowed_env_vars`; only override per-test when necessary.
-4. **Stage path hardening**: use `policy_stage_overlays` with `path_policy_mode: "allowlist-required"` so CI and release stages apply stricter path boundaries than local runs.
+4. **Stage path hardening**: use `policy_stage_overlays` with `path_policy_profile: "ci-restricted"` or `path_policy_profile: "release-deny-default"` so CI and release stages apply stricter path boundaries than local runs.
 5. **Deterministic artifacts**: write reports to unique per-run output directories and publish only required formats.
 6. **Supervised process control**: use external job timeouts/watchdogs to enforce hard preemption where required.
 
@@ -50,6 +52,7 @@ Eval is intended for controlled execution environments. For enterprise rollout, 
 	"allowed_commands": ["kujo", "echo", "cat"],
 	"allowed_command_patterns": ["kujo run", "kujo test", "echo "],
 	"blocked_arg_patterns": ["--privileged", "rm -rf", "curl |", "wget |"],
+	"path_policy_profile": "ci-restricted",
 	"allowed_paths": ["./eval_results", "./snapshots", "./fixtures"],
 	"allowed_env_vars": ["CI", "GITHUB_SHA", "GITHUB_REF"]
 }

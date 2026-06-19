@@ -16,6 +16,7 @@ Complete reference for the `eval.json` suite configuration format.
 | `policy_profile` | string | No | `""` | Optional preset: `strict-ci`, `local-dev`, or `release-gate` |
 | `require_command_policy` | bool | No | `false` | When true, command-backed checks in enforced stages (`ci`/`release`) require allowlist policy inputs. |
 | `path_policy_mode` | string | No | `"open"` | Path policy mode: `open` or `allowlist-required`. In enforced stages, `allowlist-required` fails closed unless allowlists are present. |
+| `path_policy_profile` | string | No | `""` | Optional named path-policy preset: `open`, `ci-restricted`, or `release-deny-default`. Explicit `path_policy_mode` and `allowed_paths` override profile defaults. |
 | `allowed_commands` | array | No | `[]` | Explicit command allowlist. |
 | `allowed_command_patterns` | array | No | `[]` | Command pattern allowlist (substring or token mode). |
 | `blocked_arg_patterns` | array | No | `[]` | Denied argument/pattern substrings evaluated before command execution. |
@@ -29,6 +30,29 @@ Complete reference for the `eval.json` suite configuration format.
 | `aux_artifact_retention_files` | int | No | `25` | Max auxiliary backup artifacts (`*.bak`) retained in output dir |
 | `artifact_checksums` | bool | No | `false` | Include SHA-256 checksums in `artifact-manifest.json` for generated artifacts |
 | `tests` | array | Yes | — | Array of test definitions |
+
+## Policy Profiles
+
+`policy_profile` controls command/path/env defaults across the suite. `path_policy_profile` is narrower: it only expands path-policy defaults and can be used either at top level or in `policy_stage_overlays`.
+
+| Path Profile | Default Behavior |
+|--------------|------------------|
+| `open` | Uses `path_policy_mode: "open"` with no path allowlist. |
+| `ci-restricted` | Uses `path_policy_mode: "allowlist-required"` and allows common repository-owned docs, schema, examples, source, and tests paths. |
+| `release-deny-default` | Uses `path_policy_mode: "allowlist-required"` and allows only release artifacts, snapshots, fixtures, schema, and release signoff docs by default. |
+
+Example stage overlay:
+
+```json
+{
+  "policy_stage_overlays": {
+    "release": {
+      "path_policy_profile": "release-deny-default",
+      "allowed_paths": ["./eval_results", "./snapshots", "./examples/fixtures", "./schema", "./docs/release-signoff.md"]
+    }
+  }
+}
+```
 
 ## Test Definition
 

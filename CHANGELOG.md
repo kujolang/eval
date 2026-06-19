@@ -11,6 +11,7 @@
 - Added deterministic contract fixtures under `examples/fixtures/contracts/` for `summary.json`, `cli-summary.json`, `artifact-manifest.json`, and `policy-explain` payload validation.
 - Added policy explain risk telemetry (`risk_score`, `risk_tier`, `risk_hints`) to support enterprise policy posture review.
 - Added schema-driven lint diagnostics (`lint_config_file`) with stable error codes, locations, and actionable suggested fixes.
+- Added named `path_policy_profile` presets (`open`, `ci-restricted`, `release-deny-default`) for top-level suites and stage overlays.
 - Added richer JSON-path assertions for `json_value_equals` and `command_stdout_json_path_equals`, including array index traversal and `expected_type` checks.
 - Added incremental report generation controls via `save_report_with_options` and command-level `--incremental` support.
 
@@ -37,6 +38,7 @@
 ### SECURITY
 - Added strict command policy enforcement controls for CI/release stages (`require_command_policy`) with stage overlay support.
 - Added path allowlist enforcement mode for guarded stages and expanded policy introspection for command/path/env controls.
+- Added validation and lint diagnostics for invalid path policy profiles, including stage-overlay profile names.
 - Added outbound HTTP host governance for network checks with `allowed_http_hosts`/`blocked_http_hosts` and blocked-host precedence.
 - Added organization-specific redaction extension patterns (`redact_output_patterns`) for command output sanitization.
 
@@ -57,6 +59,8 @@
 - Added VM-first migration guidance for legacy interpreter-era commands in `README.md`.
 - Added migration notes in `docs/agent-notes.md` and `docs/eval-suite-reference.md` to keep command guidance internally consistent.
 - Added enterprise quickstart risk-tier matrices and copy/paste profile guidance in `README.md`, `docs/QUICKREF.md`, and `docs/COOKBOOK.md`.
+- Added repository layout rationale in `README.md` explaining why `main.kujo` and package/governance files stay at root while implementation lives in `src/`.
+- Documented path policy profiles in `README.md`, `docs/eval-suite-reference.md`, `docs/SECURITY.md`, `docs/API_REFERENCE.md`, and `docs/QUICKREF.md`.
 - Added container build/run documentation in `README.md` for pinned-runtime Docker workflows.
 - Added `docs/release-signoff.md` template and runbook guidance for optional human approval enforcement in release gates.
 - Updated `docs/ECOSYSTEM.md` Scout import example to use canonical `kujo run main.kujo init --from-scout ...` invocation.
