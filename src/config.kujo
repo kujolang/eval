@@ -135,8 +135,93 @@ func normalize_path_policy_mode(raw_mode, fallback_mode) {
 	return "allowlist-required"
 }
 
-func normalize_policy_stage_overlay(raw_overlay) {
+func is_known_path_policy_profile(profile_name) {
+	if profile_name == "open" || profile_name == "ci-restricted" || profile_name == "release-deny-default" {
+		return true
+	}
+	return false
+}
+
+func path_policy_profile_defaults(profile_name) {
+	if profile_name == "ci-restricted" {
+		return {
+			"path_policy_profile": profile_name,
+			"path_policy_mode": "allowlist-required",
+			"allowed_paths": ["./README.md", "./docs", "./examples", "./schema", "./src", "./tests", "./main.kujo", "./kujo.toml", "./kennel.toml"]
+		}
+	}
+
+	if profile_name == "release-deny-default" {
+		return {
+			"path_policy_profile": profile_name,
+			"path_policy_mode": "allowlist-required",
+			"allowed_paths": ["./eval_results", "./snapshots", "./examples/fixtures", "./schema", "./docs/release-signoff.md"]
+		}
+	}
+
+	return {
+		"path_policy_profile": "open",
+		"path_policy_mode": "open",
+		"allowed_paths": []
+	}
+}
+
+func apply_path_policy_profile(raw_overlay) {
 	overlay := normalize_dict(raw_overlay)
+	profile_name := normalize_string(dict_get_or(overlay, "path_policy_profile", ""), "")
+	if profile_name == "" || is_known_path_policy_profile(profile_name) == false {
+		return overlay
+	}
+
+	profile_defaults := path_policy_profile_defaults(profile_name)
+	for key in keys(profile_defaults) {
+		if has_key(overlay, key) == 0 {
+			overlay[key] := profile_defaults[key]
+		}
+	}
+
+	return overlay
+}
+
+func invalid_path_policy_profile_diagnostic(cfg) {
+	normalized := normalize_dict(cfg)
+	top_profile := normalize_string(dict_get_or(normalized, "path_policy_profile", ""), "")
+	if top_profile != "" && is_known_path_policy_profile(top_profile) == false {
+		return {
+			"valid": false,
+			"profile": top_profile,
+			"location": "path_policy_profile"
+		}
+	}
+
+	overlays := normalize_dict(dict_get_or(normalized, "policy_stage_overlays", {}))
+	stages := ["local", "ci", "release"]
+	si := 0
+	while si < len(stages) {
+		stage := stages[si]
+		if has_key(overlays, stage) == 1 {
+			overlay := normalize_dict(dict_get_or(overlays, stage, {}))
+			profile := normalize_string(dict_get_or(overlay, "path_policy_profile", ""), "")
+			if profile != "" && is_known_path_policy_profile(profile) == false {
+				return {
+					"valid": false,
+					"profile": profile,
+					"location": "policy_stage_overlays." + stage + ".path_policy_profile"
+				}
+			}
+		}
+		si := si + 1
+	}
+
+	return {
+		"valid": true,
+		"profile": "",
+		"location": ""
+	}
+}
+
+func normalize_policy_stage_overlay(raw_overlay) {
+	overlay := apply_path_policy_profile(raw_overlay)
 
 	command_pattern_match_mode := normalize_string(dict_get_or(overlay, "command_pattern_match_mode", "substring"), "substring")
 	if command_pattern_match_mode != "token" {
@@ -144,6 +229,7 @@ func normalize_policy_stage_overlay(raw_overlay) {
 	}
 
 	return {
+		"path_policy_profile": normalize_string(dict_get_or(overlay, "path_policy_profile", ""), ""),
 		"allowed_commands": normalize_array(dict_get_or(overlay, "allowed_commands", [])),
 		"allowed_command_patterns": normalize_array(dict_get_or(overlay, "allowed_command_patterns", [])),
 		"blocked_arg_patterns": normalize_array(dict_get_or(overlay, "blocked_arg_patterns", [])),
@@ -349,12 +435,16 @@ export func policy_explain_config(config, policy_stage) {
 	allowed_http_hosts := normalize_array(dict_get_or(normalized, "allowed_http_hosts", []))
 	blocked_http_hosts := normalize_array(dict_get_or(normalized, "blocked_http_hosts", []))
 	allowed_env_vars := normalize_array(dict_get_or(normalized, "allowed_env_vars", []))
+	path_policy_profile := normalize_string(dict_get_or(normalized, "path_policy_profile", ""), "")
 
 	if active_stage != "" {
 		overlays := normalize_dict(dict_get_or(normalized, "policy_stage_overlays", {}))
 		overlay_raw := normalize_dict(dict_get_or(overlays, active_stage, {}))
 		if len(keys(overlay_raw)) > 0 {
 			stage_overlay = normalize_policy_stage_overlay(overlay_raw)
+			if has_key(stage_overlay, "path_policy_profile") == 1 {
+				path_policy_profile = normalize_string(dict_get_or(stage_overlay, "path_policy_profile", path_policy_profile), path_policy_profile)
+			}
 			if has_key(stage_overlay, "allowed_commands") == 1 {
 				allowed_commands = normalize_array(dict_get_or(stage_overlay, "allowed_commands", allowed_commands))
 			}
@@ -428,6 +518,7 @@ export func policy_explain_config(config, policy_stage) {
 			"command_pattern_match_mode": command_pattern_match_mode,
 			"require_command_policy": require_command_policy,
 			"path_policy_mode": path_policy_mode,
+			"path_policy_profile": path_policy_profile,
 			"redaction_audit_mode": redaction_audit_mode,
 			"redact_output_patterns": redact_output_patterns,
 			"allowed_paths": allowed_paths,
@@ -540,6 +631,13 @@ export func lint_config_file(config_path) {
 		if path_mode != "open" && path_mode != "allowlist-required" {
 			diagnostics = append_lint_diagnostic(diagnostics, "CFG_PATH_POLICY_MODE", "path_policy_mode", "Invalid path_policy_mode: " + path_mode, "Use \"open\" or \"allowlist-required\".")
 		}
+	}
+
+	path_profile_diag := invalid_path_policy_profile_diagnostic(cfg)
+	if dict_get_or(path_profile_diag, "valid", true) == false {
+		path_profile := normalize_string(dict_get_or(path_profile_diag, "profile", ""), "")
+		location := normalize_string(dict_get_or(path_profile_diag, "location", "path_policy_profile"), "path_policy_profile")
+		diagnostics = append_lint_diagnostic(diagnostics, "CFG_PATH_POLICY_PROFILE", location, "Unknown path_policy_profile: " + path_profile, "Use one of: open, ci-restricted, release-deny-default.")
 	}
 
 	ti := 0
@@ -693,6 +791,11 @@ export func validate_config(cfg) {
 		return make_result(false, "Unknown policy_profile: " + policy_profile + ". Expected one of strict-ci, local-dev, release-gate", {})
 	}
 
+	path_profile_diag := invalid_path_policy_profile_diagnostic(normalized)
+	if dict_get_or(path_profile_diag, "valid", true) == false {
+		return make_result(false, "Unknown path_policy_profile at " + normalize_string(dict_get_or(path_profile_diag, "location", "path_policy_profile"), "path_policy_profile") + ": " + normalize_string(dict_get_or(path_profile_diag, "profile", ""), "") + ". Expected one of open, ci-restricted, release-deny-default", {})
+	}
+
 	profile_defaults := policy_profile_defaults(policy_profile)
 
 	allowed_commands := normalize_array(dict_get_or(profile_defaults, "allowed_commands", []))
@@ -728,6 +831,14 @@ export func validate_config(cfg) {
 		path_policy_mode = normalize_path_policy_mode(dict_get_or(normalized, "path_policy_mode", "open"), "open")
 	}
 
+	path_policy_profile := normalize_string(dict_get_or(normalized, "path_policy_profile", ""), "")
+	if path_policy_profile != "" {
+		path_profile_defaults := path_policy_profile_defaults(path_policy_profile)
+		if has_key(normalized, "path_policy_mode") == 0 {
+			path_policy_mode = normalize_path_policy_mode(dict_get_or(path_profile_defaults, "path_policy_mode", "open"), "open")
+		}
+	}
+
 	redaction_audit_mode := normalize_bool(dict_get_or(profile_defaults, "redaction_audit_mode", false), false)
 	if has_key(normalized, "redaction_audit_mode") == 1 {
 		redaction_audit_mode = normalize_bool(dict_get_or(normalized, "redaction_audit_mode", false), false)
@@ -739,6 +850,10 @@ export func validate_config(cfg) {
 	}
 
 	allowed_paths := normalize_array(dict_get_or(profile_defaults, "allowed_paths", []))
+	if path_policy_profile != "" {
+		path_profile_defaults := path_policy_profile_defaults(path_policy_profile)
+		allowed_paths = normalize_array(dict_get_or(path_profile_defaults, "allowed_paths", allowed_paths))
+	}
 	if has_key(normalized, "allowed_paths") == 1 {
 		allowed_paths = normalize_array(dict_get_or(normalized, "allowed_paths", []))
 	}
@@ -795,6 +910,7 @@ export func validate_config(cfg) {
 		"parallel_workers": parallel_workers,
 		"artifact_checksums": artifact_checksums,
 		"policy_stage_overlays": policy_stage_overlays,
+		"path_policy_profile": path_policy_profile,
 		"allowed_commands": allowed_commands,
 		"allowed_command_patterns": allowed_command_patterns,
 		"blocked_arg_patterns": blocked_arg_patterns,

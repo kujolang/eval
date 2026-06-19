@@ -71,6 +71,11 @@
       "default": "open",
       "description": "Path policy behavior. allowlist-required enforces explicit allowed_paths for path-backed checks in guarded stages."
     },
+    "path_policy_profile": {
+      "type": "string",
+      "enum": ["open", "ci-restricted", "release-deny-default"],
+      "description": "Optional named path-policy preset. Explicit path_policy_mode and allowed_paths fields override preset defaults."
+    },
     "policy_stage_overlays": {
       "type": "object",
       "description": "Optional stage-specific policy overlays applied when --policy-stage or KUJO_EVAL_POLICY_STAGE is set.",
@@ -246,6 +251,10 @@
         "path_policy_mode": {
           "type": "string",
           "enum": ["open", "allowlist-required"]
+        },
+        "path_policy_profile": {
+          "type": "string",
+          "enum": ["open", "ci-restricted", "release-deny-default"]
         },
         "redaction_audit_mode": {
           "type": "boolean"

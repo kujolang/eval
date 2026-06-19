@@ -827,6 +827,84 @@ test "policy_explain_config merges stage overlay fields" {
 	assert_equal(len(dict_get_or(effective, "allowed_paths", [])), 1)
 }
 
+test "validate_config expands top-level path policy profile defaults" {
+	cfg := {
+		"name": "path-profile-suite",
+		"path_policy_profile": "ci-restricted",
+		"tests": [{"name": "readme", "check": "file_exists", "params": {"path": "README.md"}}]
+	}
+	result := validate_config(cfg)
+	assert_true(result["ok"])
+	data := dict_get_or(result, "data", {})
+	validated := dict_get_or(data, "config", {})
+	assert_equal(dict_get_or(validated, "path_policy_profile", ""), "ci-restricted")
+	assert_equal(dict_get_or(validated, "path_policy_mode", ""), "allowlist-required")
+	assert_true(len(dict_get_or(validated, "allowed_paths", [])) > 0)
+}
+
+test "policy_explain_config expands stage path policy profile" {
+	cfg := {
+		"name": "stage-path-profile-view-suite",
+		"policy_stage_overlays": {
+			"release": {
+				"path_policy_profile": "release-deny-default"
+			}
+		}
+	}
+	view := policy_explain_config(cfg, "release")
+	effective := dict_get_or(view, "effective_policy", {})
+	assert_equal(dict_get_or(effective, "path_policy_profile", ""), "release-deny-default")
+	assert_equal(dict_get_or(effective, "path_policy_mode", ""), "allowlist-required")
+	assert_true(len(dict_get_or(effective, "allowed_paths", [])) > 0)
+}
+
+test "run_suite applies release-deny-default path policy profile" {
+	try {
+		write_file(".eval_path_profile_release.json", "{\"name\":\"path-profile-release\",\"policy_stage_overlays\":{\"release\":{\"path_policy_profile\":\"release-deny-default\"}},\"tests\":[{\"name\":\"readme-blocked\",\"check\":\"file_exists\",\"params\":{\"path\":\"README.md\"}}]}")
+	} except err {}
+
+	result := run_suite(".eval_path_profile_release.json", {"quiet": true, "policy_stage": "release"})
+	data := dict_get_or(result, "data", {})
+	assert_true(result["ok"])
+	assert_equal(dict_get_or(data, "failed", 0), 1)
+
+	try { remove_file(".eval_path_profile_release.json") } except err {}
+}
+
+test "lint_config_file rejects unknown path policy profile" {
+	try { write_file(".eval_bad_path_profile.json", "{\"name\":\"bad-path-profile\",\"path_policy_profile\":\"unknown\",\"tests\":[{\"name\":\"ok\",\"check\":\"file_exists\",\"params\":{\"path\":\"README.md\"}}]}") } except err {}
+	result := lint_config_file(".eval_bad_path_profile.json")
+	assert_false(result["ok"])
+	data := dict_get_or(result, "data", {})
+	diagnostics := dict_get_or(data, "diagnostics", [])
+	found := false
+	i := 0
+	while i < len(diagnostics) {
+		diag := diagnostics[i]
+		if dict_get_or(diag, "code", "") == "CFG_PATH_POLICY_PROFILE" {
+			found = true
+		}
+		i = i + 1
+	}
+	assert_true(found)
+	try { remove_file(".eval_bad_path_profile.json") } except err {}
+}
+
+test "validate_config rejects unknown stage path policy profile" {
+	cfg := {
+		"name": "bad-stage-path-profile",
+		"policy_stage_overlays": {
+			"ci": {
+				"path_policy_profile": "unknown"
+			}
+		},
+		"tests": [{"name": "ok", "check": "file_exists", "params": {"path": "README.md"}}]
+	}
+	result := validate_config(cfg)
+	assert_false(result["ok"])
+	assert_true(contains(dict_get_or(result, "error", ""), "policy_stage_overlays.ci.path_policy_profile") == true)
+}
+
 test "policy_explain_config emits high risk warnings for open release posture" {
 	cfg := {
 		"name": "policy-risk-open",
