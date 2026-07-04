@@ -126,7 +126,7 @@ Migration mapping:
 - Preferred: `kujo run main.kujo <command>`
 - Optional compatibility check: `kujo run main.kujo --interpreter <command>`
 
-Interpreter mode can emit RUFRUN001 warning noise while still succeeding; rely on exit code plus generated artifacts (`summary.json`, `artifact-manifest.json`) for CI pass/fail decisions.
+Interpreter mode can emit KUJORUN001 warning noise while still succeeding; rely on exit code plus generated artifacts (`summary.json`, `artifact-manifest.json`) for CI pass/fail decisions.
 
 ## Operational Watchdog Controls
 
@@ -173,7 +173,7 @@ scripts/release_quality_gates.sh
 
 ## Known Runtime Limitations
 
-- Interpreter mode may print RUFRUN001 type-check warnings even when commands exit successfully.
+- Interpreter mode may print KUJORUN001 type-check warnings even when commands exit successfully.
 - Command checks support native process timeout termination through `timeout_ms` and suite-level `timeout_seconds`.
 - `watch` is intentionally long-running and should be interrupted manually in local shells.
 - Command and file checks run in the host environment and are not a full sandbox boundary.

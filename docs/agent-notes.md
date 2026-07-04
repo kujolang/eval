@@ -153,11 +153,11 @@ export func dict_get_or(obj, key, default_value) { ... }
 
 ---
 
-### 9. RUFRUN001 warnings are benign in interpreter mode
+### 9. KUJORUN001 warnings are benign in interpreter mode
 
-**Symptom**: Large blocks of `[RUFRUN001] Undefined Function` warnings during `--interpreter` execution.
+**Symptom**: Large blocks of `[KUJORUN001] Undefined Function` warnings during `--interpreter` execution.
 
-**Rule**: Ignore RUFRUN001 warnings. Key pass/fail decisions off exit codes and actual output, not warning presence. These are type-checker warnings from the pre-pass that don't affect runtime behavior.
+**Rule**: Ignore KUJORUN001 warnings. Key pass/fail decisions off exit codes and actual output, not warning presence. These are type-checker warnings from the pre-pass that don't affect runtime behavior.
 
 **Discovered**: Loop 1. Confirmed from memory notes.
 
@@ -253,7 +253,7 @@ kujo run main.kujo run examples/release_gate_suite.json --output-dir .eval_out -
 kujo run main.kujo --interpreter run examples/release_gate_suite.json --output-dir .eval_out --json
 ```
 
-When interpreter mode emits RUFRUN001 warning blocks, treat them as advisory unless command exit code or artifact contract indicates failure.
+When interpreter mode emits KUJORUN001 warning blocks, treat them as advisory unless command exit code or artifact contract indicates failure.
 
 ### Validation pattern for every loop
 

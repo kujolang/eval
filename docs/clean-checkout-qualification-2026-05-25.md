@@ -9,7 +9,7 @@ Runtime: /path/to/kujo/target/release/kujo
 
 All qualification commands exited 0 from a clean checkout.
 
-Note: Interpreter-mode commands continue to emit RUFRUN001 type-check warnings in stderr. These warnings are currently non-fatal and expected in this runtime, and command success is validated by exit code + output signals.
+Note: Interpreter-mode commands continue to emit KUJORUN001 type-check warnings in stderr. These warnings are currently non-fatal and expected in this runtime, and command success is validated by exit code + output signals.
 
 ## Command Matrix
 

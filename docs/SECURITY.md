@@ -90,7 +90,7 @@ Optional audit telemetry:
 - `http_get` may panic in interpreter mode (Kujo runtime quirk)
 - Timeout behavior depends on runtime support for `execute_status` options; validate timeout enforcement in your target Kujo build.
 - Output redaction uses simple pattern matching, not cryptographic guarantees
-- Interpreter RUFRUN001 warnings may appear even when command exit codes are successful
+- Interpreter KUJORUN001 warnings may appear even when command exit codes are successful
 
 ## Reporting a Vulnerability
 

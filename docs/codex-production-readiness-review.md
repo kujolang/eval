@@ -54,7 +54,7 @@ kujo-eval now clears the previously blocking areas from the 2026-05-24 fail revi
 ## Residual Risks / Known Limitations
 
 These are known and documented, not release blockers for this candidate:
-- Interpreter mode emits RUFRUN001 type-check warnings on stderr in current runtime behavior even when commands succeed.
+- Interpreter mode emits KUJORUN001 type-check warnings on stderr in current runtime behavior even when commands succeed.
 - `kujo test --runtime interpreter` is treated as advisory compatibility coverage and is not a release gate.
 - Timeout handling remains detection-oriented; long-running subprocess termination is runtime-constrained.
 - `watch` command is intentionally long-running and should be manually interrupted.

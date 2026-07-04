@@ -13,23 +13,23 @@ Exit: 4
 Excerpt:
 ```text
 Type checking warnings:
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'make_result'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'make_result'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'make_result'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'make_result'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'init_config'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'init_config'
   --> 0:0
    = note: Function must be defined before it is called
 ```
@@ -43,23 +43,23 @@ Exit: 1
 Excerpt:
 ```text
 Type checking warnings:
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'make_result'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'make_result'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'make_result'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'make_result'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'init_config'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'init_config'
   --> 0:0
    = note: Function must be defined before it is called
 ```
@@ -73,23 +73,23 @@ Exit: 1
 Excerpt:
 ```text
 Type checking warnings:
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'make_result'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'make_result'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'make_result'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'make_result'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'init_config'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'init_config'
   --> 0:0
    = note: Function must be defined before it is called
 ```
@@ -103,23 +103,23 @@ Exit: 1
 Excerpt:
 ```text
 Type checking warnings:
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'make_result'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'make_result'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'make_result'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'make_result'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'init_config'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'init_config'
   --> 0:0
    = note: Function must be defined before it is called
 ```
@@ -133,23 +133,23 @@ Exit: 0
 Excerpt:
 ```text
 Type checking warnings:
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'make_result'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'make_result'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'make_result'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'make_result'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'init_config'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'init_config'
   --> 0:0
    = note: Function must be defined before it is called
 ```
@@ -163,23 +163,23 @@ Exit: 0
 Excerpt:
 ```text
 Type checking warnings:
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'make_result'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'make_result'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'make_result'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'make_result'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'init_config'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'init_config'
   --> 0:0
    = note: Function must be defined before it is called
 ```
@@ -193,23 +193,23 @@ Exit: 0
 Excerpt:
 ```text
 Type checking warnings:
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'make_result'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'make_result'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'make_result'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'make_result'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'init_config'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'init_config'
   --> 0:0
    = note: Function must be defined before it is called
 ```
@@ -223,23 +223,23 @@ Exit: 1
 Excerpt:
 ```text
 Type checking warnings:
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'make_result'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'make_result'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'make_result'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'make_result'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'init_config'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'init_config'
   --> 0:0
    = note: Function must be defined before it is called
 ```
@@ -253,23 +253,23 @@ Exit: 0
 Excerpt:
 ```text
 Type checking warnings:
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'make_result'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'make_result'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'make_result'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'make_result'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'init_config'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'init_config'
   --> 0:0
    = note: Function must be defined before it is called
 ```
@@ -283,23 +283,23 @@ Exit: 1
 Excerpt:
 ```text
 Type checking warnings:
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'make_result'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'make_result'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'make_result'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'make_result'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'init_config'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'init_config'
   --> 0:0
    = note: Function must be defined before it is called
 ```
@@ -313,23 +313,23 @@ Exit: 4
 Excerpt:
 ```text
 Type checking warnings:
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'make_result'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'make_result'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'make_result'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'make_result'
   --> 0:0
    = note: Function must be defined before it is called
 
-  [RUFRUN001] [runtime] Undefined Function: Undefined function 'init_config'
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'init_config'
   --> 0:0
    = note: Function must be defined before it is called
 ```

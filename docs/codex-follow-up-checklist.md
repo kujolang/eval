@@ -24,7 +24,7 @@ Verification:
 - `/path/to/kujo/target/release/kujo run main.kujo --interpreter version`
 - `/path/to/kujo/target/release/kujo run main.kujo --interpreter list-checks`
 - `/path/to/kujo/target/release/kujo run main.kujo --interpreter run examples/basic_suite.json --json`
-- Expected result: all commands exit 0 without `RUFRUN001` runtime symbol errors.
+- Expected result: all commands exit 0 without `KUJORUN001` runtime symbol errors.
 
 Files likely affected:
 - `src/eval_core.kujo`

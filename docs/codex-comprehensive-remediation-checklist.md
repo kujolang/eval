@@ -97,8 +97,8 @@ Verification:
 - /path/to/kujo/target/release/kujo run main.kujo --interpreter version
 - /path/to/kujo/target/release/kujo run main.kujo --interpreter list-checks
 Done when:
-- Both commands exit 0 with no RUFRUN001 undefined symbol errors.
-Completed (2026-05-25): Runtime compatibility fixes in shared helpers and eval core resolved hard command failures. Interpreter commands now exit 0 for version/list-checks/run/report paths; RUFRUN001 warnings are documented runtime caveats.
+- Both commands exit 0 with no KUJORUN001 undefined symbol errors.
+Completed (2026-05-25): Runtime compatibility fixes in shared helpers and eval core resolved hard command failures. Interpreter commands now exit 0 for version/list-checks/run/report paths; KUJORUN001 warnings are documented runtime caveats.
 
 ### [x] R1.2 Validate all interpreter command entrypoints
 Priority: P0
