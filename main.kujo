@@ -402,7 +402,10 @@ func print_compact_summary(results) {
 	if failed > 0 {
 		status = "FAIL"
 	}
-	print("Summary: " + status + " | suite=" + suite_name + " | passed=" + to_string(passed) + " | failed=" + to_string(failed) + " | skipped=" + to_string(skipped) + " | total=" + to_string(total) + " | pass_rate=" + to_string(pass_rate) + "% | duration_ms=" + to_string(duration_ms))
+	summary_line := "Summary: " + status + " | suite=" + suite_name + " | passed=" + to_string(passed)
+	summary_line = summary_line + " | failed=" + to_string(failed) + " | skipped=" + to_string(skipped) + " | total=" + to_string(total)
+	summary_line = summary_line + " | pass_rate=" + to_string(pass_rate) + "% | duration_ms=" + to_string(duration_ms)
+	print(summary_line)
 }
 
 func command_init(parsed) {
@@ -425,7 +428,11 @@ func command_init(parsed) {
 					"tests": imported
 				}
 				write_file("eval.json", to_json(config))
-				print(to_json(make_result(true, "", {"message": "Imported " + to_string(len(imported)) + " tests from " + from_path + " into eval.json", "path": "eval.json"})))
+				payload := {
+					"message": "Imported " + to_string(len(imported)) + " tests from " + from_path + " into eval.json",
+					"path": "eval.json"
+				}
+				print(to_json(make_result(true, "", payload)))
 				return
 			}
 		} except err {
@@ -914,7 +921,7 @@ func command_report(parsed) {
 	}
 
 	if is_json {
-		print(to_json(make_result(true, "", {
+		payload := {
 			"report_path": dict_get_or(save_data, "path", ""),
 			"results": results,
 			"from_cache": loaded_from_cache,
@@ -923,7 +930,8 @@ func command_report(parsed) {
 			"report_incremental_cache_hit": bool_flag(dict_get_or(save_data, "incremental_cache_hit", false), false),
 			"report_incremental_unchanged_sections": dict_get_or(save_data, "unchanged_sections", []),
 			"summary_channel_path": summary_channel_path
-		})))
+		}
+		print(to_json(make_result(true, "", payload)))
 	} else {
 		print_report(results, dict_get_or(flags, "format", "md"))
 		report_lines := [""]
@@ -953,18 +961,20 @@ func command_compare(parsed) {
 	path_b := positionals[2]
 
 	if path_exists(path_a) == false {
-		print(to_json({
+		payload := {
 			"ok": false,
 			"error": "Results file A not found: " + path_a
-		}))
+		}
+		print(to_json(payload))
 		exit(1)
 	}
 
 	if path_exists(path_b) == false {
-		print(to_json({
+		payload := {
 			"ok": false,
 			"error": "Results file B not found: " + path_b
-		}))
+		}
+		print(to_json(payload))
 		exit(1)
 	}
 
