@@ -1,12 +1,8 @@
 # Eval
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue)](https://github.com/kujolang/eval)
-[![Contract](https://img.shields.io/badge/contract-v2.0.0-green)](https://github.com/kujolang/eval)
-[![Checks](https://img.shields.io/badge/checks-27-orange)](https://github.com/kujolang/eval)
-[![Tests](https://img.shields.io/badge/tests-7%20suites%20passing-brightgreen)](https://github.com/kujolang/eval)
+[![Version](https://img.shields.io/badge/version-1.0.0-black)](https://github.com/kujolang/eval)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
-
-> **v1.0.0** | Contract v2.0.0 | 27 checks | 5 report formats | 14 CLI commands | 7 test suites | 5-layer controls
+[![built with Kujo](https://img.shields.io/badge/built%20with-Kujo-white.svg)](https://github.com/kujolang/kujo)
 
 Evaluation framework for AI-native software — deterministic checks for agents, CLIs, files, snapshots, and workflow outputs.
 
