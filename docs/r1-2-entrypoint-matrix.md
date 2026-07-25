@@ -8,7 +8,7 @@ Date: 2026-05-24
 
 ## init
 
-Command: /path/to/kujo/target/release/kujo run main.kujo --interpreter init --name loop-r12
+Command: kujo run main.kujo --interpreter init --name loop-r12
 Exit: 4
 Excerpt:
 ```text
@@ -38,7 +38,7 @@ Type checking warnings:
 
 ## run
 
-Command: /path/to/kujo/target/release/kujo run main.kujo --interpreter run examples/basic_suite.json --json
+Command: kujo run main.kujo --interpreter run examples/basic_suite.json --json
 Exit: 1
 Excerpt:
 ```text
@@ -68,7 +68,7 @@ Type checking warnings:
 
 ## report
 
-Command: /path/to/kujo/target/release/kujo run main.kujo --interpreter report
+Command: kujo run main.kujo --interpreter report
 Exit: 1
 Excerpt:
 ```text
@@ -98,7 +98,7 @@ Type checking warnings:
 
 ## compare
 
-Command: /path/to/kujo/target/release/kujo run main.kujo --interpreter compare ./eval_results/last_run.json ./eval_results/last_run.json
+Command: kujo run main.kujo --interpreter compare ./eval_results/last_run.json ./eval_results/last_run.json
 Exit: 1
 Excerpt:
 ```text
@@ -128,7 +128,7 @@ Type checking warnings:
 
 ## list-checks
 
-Command: /path/to/kujo/target/release/kujo run main.kujo --interpreter list-checks
+Command: kujo run main.kujo --interpreter list-checks
 Exit: 0
 Excerpt:
 ```text
@@ -158,7 +158,7 @@ Type checking warnings:
 
 ## snapshots
 
-Command: /path/to/kujo/target/release/kujo run main.kujo --interpreter snapshots
+Command: kujo run main.kujo --interpreter snapshots
 Exit: 0
 Excerpt:
 ```text
@@ -188,7 +188,7 @@ Type checking warnings:
 
 ## version
 
-Command: /path/to/kujo/target/release/kujo run main.kujo --interpreter version
+Command: kujo run main.kujo --interpreter version
 Exit: 0
 Excerpt:
 ```text
@@ -218,7 +218,7 @@ Type checking warnings:
 
 ## lint
 
-Command: /path/to/kujo/target/release/kujo run main.kujo --interpreter lint examples/basic_suite.json
+Command: kujo run main.kujo --interpreter lint examples/basic_suite.json
 Exit: 1
 Excerpt:
 ```text
@@ -248,7 +248,7 @@ Type checking warnings:
 
 ## diff
 
-Command: /path/to/kujo/target/release/kujo run main.kujo --interpreter diff README.md README.md
+Command: kujo run main.kujo --interpreter diff README.md README.md
 Exit: 0
 Excerpt:
 ```text
@@ -278,7 +278,7 @@ Type checking warnings:
 
 ## export
 
-Command: /path/to/kujo/target/release/kujo run main.kujo --interpreter export examples/basic_suite.json
+Command: kujo run main.kujo --interpreter export examples/basic_suite.json
 Exit: 1
 Excerpt:
 ```text
@@ -308,7 +308,7 @@ Type checking warnings:
 
 ## completion
 
-Command: /path/to/kujo/target/release/kujo run main.kujo --interpreter completion --shell bash
+Command: kujo run main.kujo --interpreter completion --shell bash
 Exit: 4
 Excerpt:
 ```text
@@ -336,5 +336,5 @@ Type checking warnings:
 
 ## watch
 
-Command: /path/to/kujo/target/release/kujo run main.kujo --interpreter watch --config eval.json
+Command: kujo run main.kujo --interpreter watch --config eval.json
 Result: long-running mode; validated separately via start/terminate check.

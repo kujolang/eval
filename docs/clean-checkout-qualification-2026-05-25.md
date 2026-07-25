@@ -3,7 +3,7 @@
 Date: 2026-05-25 02:22:00 UTC
 Source commit: cce4575
 Method: Fresh clone to temporary directory (`mktemp -d`), then full command validation with pinned runtime.
-Runtime: /path/to/kujo/target/release/kujo
+Runtime: kujo
 
 ## Summary
 

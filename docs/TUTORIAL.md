@@ -5,7 +5,7 @@ A step-by-step guide to using Eval.
 ## Step 1: Verify Kujo Runtime Is Installed
 
 ```bash
-export KUJO_BIN=/path/to/kujo/target/release/kujo
+export KUJO_BIN=kujo
 "$KUJO_BIN" --version
 ```
 

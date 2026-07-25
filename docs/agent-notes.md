@@ -238,7 +238,7 @@ Keep first-run examples direct, and do not hide the command behavior behind gene
 - `kujo test` runs tests in VM-primary dual mode. Works reliably for contract tests.
 - `kujo run main.kujo ...` is the primary CLI execution path and should be used in docs and smoke checks.
 - `kujo run --interpreter` remains useful for compatibility parity checks and runtime debugging.
-- The Kujo language runtime binary is at `/path/to/kujo/target/release/kujo`.
+- The Kujo language runtime binary is at `kujo`.
 - The system `kujo` binary is the Python linter — NOT the language runtime. Always use the full path or set `KUJO_BIN`.
 
 ### VM-first migration from interpreter-era commands
@@ -258,7 +258,7 @@ When interpreter mode emits KUJORUN001 warning blocks, treat them as advisory un
 ### Validation pattern for every loop
 
 ```bash
-export KUJO_BIN="/path/to/kujo/target/release/kujo"
+export KUJO_BIN="kujo"
 cd /path/to/kujo-eval
 
 # 1. Run contract tests

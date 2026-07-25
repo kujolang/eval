@@ -180,8 +180,8 @@ Verification:
 ## Next Session Definition Of Done
 
 - Selected checklist items implemented with tests.
-- `/path/to/kujo/target/release/kujo test` passes.
-- `/path/to/kujo/target/release/kujo test --runtime interpreter` passes.
+- `kujo test` passes.
+- `kujo test --runtime interpreter` passes.
 - `scripts/release_quality_gates.sh` passes.
 - `scripts/supply_chain_policy_check.sh` passes.
 - `scripts/verify_docs_command_parity.sh` passes.

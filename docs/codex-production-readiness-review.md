@@ -3,7 +3,7 @@
 Date: 2026-05-25
 Reviewer: GPT-5.3 Codex
 Repository: /path/to/kujo-eval
-Primary runtime: Kujo language runtime (`/path/to/kujo/target/release/kujo`)
+Primary runtime: Kujo language runtime (`kujo`)
 
 ## Executive Verdict
 

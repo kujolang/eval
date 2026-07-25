@@ -94,7 +94,7 @@ docker run --rm -v "$PWD":/workspace -w /workspace kujo-eval:local report --form
 Recommended runtime for this repository:
 
 ```bash
-export KUJO_BIN=/path/to/kujo/target/release/kujo
+export KUJO_BIN=kujo
 "$KUJO_BIN" --version
 ```
 
@@ -153,7 +153,7 @@ Version note:
 Example:
 
 ```bash
-export KUJO_BIN=/path/to/kujo/target/release/kujo
+export KUJO_BIN=kujo
 export KUJO_EVAL_GATE_TIMEOUT_SECONDS=180
 export KUJO_EVAL_BENCH_SUITE_BUDGET_MS=600
 export KUJO_EVAL_BENCH_MEDIUM_SUITE_BUDGET_MS=3000
@@ -326,7 +326,7 @@ Profiles can be set as top-level `path_policy_profile` defaults or inside `polic
 Validated on 2026-05-25 with:
 
 ```bash
-export KUJO_BIN=/path/to/kujo/target/release/kujo
+export KUJO_BIN=kujo
 ```
 
 | Command | Exit | Expected Output Signal |

@@ -108,6 +108,6 @@ Use this file as the only actionable backlog source for unchecked-item cleanup.
 1. Complete FB-001 (demo recording).
 2. Update original checklist rows that are `RESOLVED_UNCHECKED` so historical docs no longer report false-open work.
 3. Re-run parity checks after doc updates:
-   - `/path/to/kujo/target/release/kujo test`
-   - `/path/to/kujo/target/release/kujo test --runtime interpreter`
+   - `kujo test`
+   - `kujo test --runtime interpreter`
    - `scripts/verify_docs_command_parity.sh`

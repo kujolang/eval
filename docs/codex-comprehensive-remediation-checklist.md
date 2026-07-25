@@ -15,14 +15,14 @@ Purpose:
 The repository is considered ready only when all of the following are true:
 
 1. Core interpreter workflows pass:
-- /path/to/kujo/target/release/kujo run main.kujo --interpreter version
-- /path/to/kujo/target/release/kujo run main.kujo --interpreter list-checks
-- /path/to/kujo/target/release/kujo run main.kujo --interpreter run examples/release_gate_suite.json --output-dir .eval_clean --json
-- /path/to/kujo/target/release/kujo run main.kujo --interpreter report examples/release_gate_suite.json --rerun --output-dir .eval_clean --json
+- kujo run main.kujo --interpreter version
+- kujo run main.kujo --interpreter list-checks
+- kujo run main.kujo --interpreter run examples/release_gate_suite.json --output-dir .eval_clean --json
+- kujo run main.kujo --interpreter report examples/release_gate_suite.json --rerun --output-dir .eval_clean --json
 
 2. Test integrity is consistent:
-- /path/to/kujo/target/release/kujo test
-- /path/to/kujo/target/release/kujo test --runtime interpreter
+- kujo test
+- kujo test --runtime interpreter
 Both pass with no unresolved runtime symbol/setup failures.
 
 3. Policy/release gates pass cleanly:
@@ -94,8 +94,8 @@ Files likely affected:
 - src/config.kujo
 - src/common.kujo
 Verification:
-- /path/to/kujo/target/release/kujo run main.kujo --interpreter version
-- /path/to/kujo/target/release/kujo run main.kujo --interpreter list-checks
+- kujo run main.kujo --interpreter version
+- kujo run main.kujo --interpreter list-checks
 Done when:
 - Both commands exit 0 with no KUJORUN001 undefined symbol errors.
 Completed (2026-05-25): Runtime compatibility fixes in shared helpers and eval core resolved hard command failures. Interpreter commands now exit 0 for version/list-checks/run/report paths; KUJORUN001 warnings are documented runtime caveats.
@@ -128,7 +128,7 @@ Files likely affected:
 - src/checks.kujo
 - tests/contract_tests.kujo
 Verification:
-- /path/to/kujo/target/release/kujo test-run tests/contract_tests.kujo -v
+- kujo test-run tests/contract_tests.kujo -v
 Done when:
 - Missing-file branches are deterministic and covered by tests.
 Completed (2026-05-25): Removed undefined local variable references in file content checks and added deterministic missing-file branch assertions in contract tests.
@@ -148,8 +148,8 @@ Files likely affected:
 - tests/coverage_tests.kujo
 - src/eval_core.kujo
 Verification:
-- /path/to/kujo/target/release/kujo test
-- /path/to/kujo/target/release/kujo test --runtime interpreter
+- kujo test
+- kujo test --runtime interpreter
 Done when:
 - Both commands pass.
 Completed (2026-05-25): Added `scripts/verify_test_runtime_parity.sh` and validated parity with both runtime modes passing 7/7.

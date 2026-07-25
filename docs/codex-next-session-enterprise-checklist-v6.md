@@ -192,8 +192,8 @@ Verification:
 ## Next Session Definition Of Done
 
 - Selected checklist items implemented with focused tests.
-- `/Users/robertdevore/2026/Kujolang/kujo-repos/kujo/target/release/kujo test` passes.
-- `/Users/robertdevore/2026/Kujolang/kujo-repos/kujo/target/release/kujo test --runtime vm` passes.
+- `kujo test` passes.
+- `kujo test --runtime vm` passes.
 - `scripts/verify_readme_counts.sh` passes with `KUJO_BIN` set.
 - `scripts/verify_artifact_contract.sh` passes with `KUJO_BIN` set.
 - `scripts/verify_docs_command_parity.sh` passes with `KUJO_BIN` set.

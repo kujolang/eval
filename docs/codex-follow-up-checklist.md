@@ -21,9 +21,9 @@ Fix:
 - Verify no runtime-only unresolved imports remain across modules.
 
 Verification:
-- `/path/to/kujo/target/release/kujo run main.kujo --interpreter version`
-- `/path/to/kujo/target/release/kujo run main.kujo --interpreter list-checks`
-- `/path/to/kujo/target/release/kujo run main.kujo --interpreter run examples/basic_suite.json --json`
+- `kujo run main.kujo --interpreter version`
+- `kujo run main.kujo --interpreter list-checks`
+- `kujo run main.kujo --interpreter run examples/basic_suite.json --json`
 - Expected result: all commands exit 0 without `KUJORUN001` runtime symbol errors.
 
 Files likely affected:
@@ -42,8 +42,8 @@ Fix:
 - Ensure contract tests pass in the same mode users execute CLI workflows.
 
 Verification:
-- `/path/to/kujo/target/release/kujo test`
-- `/path/to/kujo/target/release/kujo test-run tests/contract_tests.kujo -v`
+- `kujo test`
+- `kujo test-run tests/contract_tests.kujo -v`
 - Expected result: both pass with no setup/runtime symbol failures.
 
 Files likely affected:
@@ -103,7 +103,7 @@ Fix:
 Verification:
 - Add tests with allowed/disallowed command/path scenarios.
 - Run:
-  - `/path/to/kujo/target/release/kujo test-run tests/security_tests.kujo -v`
+  - `kujo test-run tests/security_tests.kujo -v`
 - Expected result: policy fields are enforced exactly as documented.
 
 Files likely affected:
@@ -123,7 +123,7 @@ Fix:
 - Add regression tests for missing-file behavior in both checks.
 
 Verification:
-- `/path/to/kujo/target/release/kujo test-run tests/contract_tests.kujo -v`
+- `kujo test-run tests/contract_tests.kujo -v`
 - Expected result: missing-file branches behave deterministically and tests pass.
 
 Files likely affected:

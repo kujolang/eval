@@ -6,7 +6,7 @@ All commands are VM-first and should be executed from the repository root.
 ## 1. Runtime Setup
 
 ```bash
-export KUJO_BIN=/path/to/kujo/target/release/kujo
+export KUJO_BIN=kujo
 "$KUJO_BIN" --version
 ```
 

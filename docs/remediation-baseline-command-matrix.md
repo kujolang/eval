@@ -1,63 +1,13 @@
 # Remediation Baseline Command Matrix
 
 Date: 2026-05-24
-Runtime: /path/to/kujo/target/release/kujo
+Runtime: kujo
 
 | Command | Exit | Result |
 |---|---:|---|
-| `/path/to/kujo/target/release/kujo run main.kujo --interpreter version` | 4 | FAIL |
+| `kujo run main.kujo --interpreter version` | 4 | FAIL |
 
-## [1] /path/to/kujo/target/release/kujo run main.kujo --interpreter version
-
-Exit: 4
-
-Excerpt:
-```text
-Type checking warnings:
-  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
-  --> 0:0
-   = note: Function must be defined before it is called
-
-  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
-  --> 0:0
-   = note: Function must be defined before it is called
-
-  [KUJORUN001] [runtime] Undefined Function: Undefined function 'make_result'
-  --> 0:0
-   = note: Function must be defined before it is called
-
-  [KUJORUN001] [runtime] Undefined Function: Undefined function 'make_result'
-  --> 0:0
-   = note: Function must be defined before it is called
-
-  [KUJORUN001] [runtime] Undefined Function: Undefined function 'init_config'
-  --> 0:0
-   = note: Function must be defined before it is called
-
-  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
-  --> 0:0
-   = note: Function must be defined before it is called
-
-  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
-  --> 0:0
-   = note: Function must be defined before it is called
-
-  [KUJORUN001] [runtime] Undefined Function: Undefined function 'default_config_path'
-  --> 0:0
-   = note: Function must be defined before it is called
-
-  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
-  --> 0:0
-   = note: Function must be defined before it is called
-
-  [KUJORUN001] [runtime] Undefined Function: Undefined function 'dict_get_or'
-  --> 0:0
-   = note: Function must be defined before it is called
-```
-
-| `/path/to/kujo/target/release/kujo run main.kujo --interpreter list-checks` | 4 | FAIL |
-
-## [2] /path/to/kujo/target/release/kujo run main.kujo --interpreter list-checks
+## [1] kujo run main.kujo --interpreter version
 
 Exit: 4
 
@@ -105,59 +55,9 @@ Type checking warnings:
    = note: Function must be defined before it is called
 ```
 
-| `/path/to/kujo/target/release/kujo run main.kujo --interpreter run examples/basic_suite.json --json` | 4 | FAIL |
+| `kujo run main.kujo --interpreter list-checks` | 4 | FAIL |
 
-## [3] /path/to/kujo/target/release/kujo run main.kujo --interpreter run examples/basic_suite.json --json
-
-Exit: 4
-
-Excerpt:
-```text
-Type checking warnings:
-  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
-  --> 0:0
-   = note: Function must be defined before it is called
-
-  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
-  --> 0:0
-   = note: Function must be defined before it is called
-
-  [KUJORUN001] [runtime] Undefined Function: Undefined function 'make_result'
-  --> 0:0
-   = note: Function must be defined before it is called
-
-  [KUJORUN001] [runtime] Undefined Function: Undefined function 'make_result'
-  --> 0:0
-   = note: Function must be defined before it is called
-
-  [KUJORUN001] [runtime] Undefined Function: Undefined function 'init_config'
-  --> 0:0
-   = note: Function must be defined before it is called
-
-  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
-  --> 0:0
-   = note: Function must be defined before it is called
-
-  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
-  --> 0:0
-   = note: Function must be defined before it is called
-
-  [KUJORUN001] [runtime] Undefined Function: Undefined function 'default_config_path'
-  --> 0:0
-   = note: Function must be defined before it is called
-
-  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
-  --> 0:0
-   = note: Function must be defined before it is called
-
-  [KUJORUN001] [runtime] Undefined Function: Undefined function 'dict_get_or'
-  --> 0:0
-   = note: Function must be defined before it is called
-```
-
-| `/path/to/kujo/target/release/kujo run main.kujo --interpreter report` | 4 | FAIL |
-
-## [4] /path/to/kujo/target/release/kujo run main.kujo --interpreter report
+## [2] kujo run main.kujo --interpreter list-checks
 
 Exit: 4
 
@@ -205,9 +105,109 @@ Type checking warnings:
    = note: Function must be defined before it is called
 ```
 
-| `/path/to/kujo/target/release/kujo test` | 0 | PASS |
+| `kujo run main.kujo --interpreter run examples/basic_suite.json --json` | 4 | FAIL |
 
-## [5] /path/to/kujo/target/release/kujo test
+## [3] kujo run main.kujo --interpreter run examples/basic_suite.json --json
+
+Exit: 4
+
+Excerpt:
+```text
+Type checking warnings:
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
+  --> 0:0
+   = note: Function must be defined before it is called
+
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
+  --> 0:0
+   = note: Function must be defined before it is called
+
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'make_result'
+  --> 0:0
+   = note: Function must be defined before it is called
+
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'make_result'
+  --> 0:0
+   = note: Function must be defined before it is called
+
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'init_config'
+  --> 0:0
+   = note: Function must be defined before it is called
+
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
+  --> 0:0
+   = note: Function must be defined before it is called
+
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
+  --> 0:0
+   = note: Function must be defined before it is called
+
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'default_config_path'
+  --> 0:0
+   = note: Function must be defined before it is called
+
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
+  --> 0:0
+   = note: Function must be defined before it is called
+
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'dict_get_or'
+  --> 0:0
+   = note: Function must be defined before it is called
+```
+
+| `kujo run main.kujo --interpreter report` | 4 | FAIL |
+
+## [4] kujo run main.kujo --interpreter report
+
+Exit: 4
+
+Excerpt:
+```text
+Type checking warnings:
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
+  --> 0:0
+   = note: Function must be defined before it is called
+
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
+  --> 0:0
+   = note: Function must be defined before it is called
+
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'make_result'
+  --> 0:0
+   = note: Function must be defined before it is called
+
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'make_result'
+  --> 0:0
+   = note: Function must be defined before it is called
+
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'init_config'
+  --> 0:0
+   = note: Function must be defined before it is called
+
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
+  --> 0:0
+   = note: Function must be defined before it is called
+
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
+  --> 0:0
+   = note: Function must be defined before it is called
+
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'default_config_path'
+  --> 0:0
+   = note: Function must be defined before it is called
+
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'normalize_string'
+  --> 0:0
+   = note: Function must be defined before it is called
+
+  [KUJORUN001] [runtime] Undefined Function: Undefined function 'dict_get_or'
+  --> 0:0
+   = note: Function must be defined before it is called
+```
+
+| `kujo test` | 0 | PASS |
+
+## [5] kujo test
 
 Exit: 0
 
@@ -225,9 +225,9 @@ Excerpt:
 [i] Runtime strategy: dual (vm_primary=7, interpreter_fallback=0)
 ```
 
-| `/path/to/kujo/target/release/kujo test-run tests/contract_tests.kujo -v` | 1 | FAIL |
+| `kujo test-run tests/contract_tests.kujo -v` | 1 | FAIL |
 
-## [6] /path/to/kujo/target/release/kujo test-run tests/contract_tests.kujo -v
+## [6] kujo test-run tests/contract_tests.kujo -v
 
 Exit: 1
 

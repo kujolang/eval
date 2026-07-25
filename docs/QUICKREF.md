@@ -25,7 +25,7 @@ One-page summary for adding features to Eval.
 ## Runtime Binary (Use This First)
 
 ```bash
-export KUJO_BIN=/path/to/kujo/target/release/kujo
+export KUJO_BIN=kujo
 "$KUJO_BIN" --version
 ```
 
