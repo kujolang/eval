@@ -1,0 +1,66 @@
+# Spec - Eval launch readiness review
+
+name: "Eval launch readiness review"
+goal: "Keep Eval locally release-ready as a deterministic evaluation runner for Kujo examples, release gates, reports, and CI-style checks."
+version: "0.1.0"
+background: "Eval is part of the Kujo prelaunch ecosystem review. Its readiness claim is limited to local and CI-oriented use until target-environment deployment, container scanning, and human release approval are complete."
+scope: "Repository-local CLI behavior, fixture-backed eval execution, report generation, command inventory parity, artifact contract checks, runtime parity, release quality gates, and launch wording."
+non_goals:
+  - "Publishing packages or public releases"
+  - "Deploying hosted services"
+  - "Claiming target-environment production readiness without downstream proof"
+relevant_systems:
+  - "Kujo runtime"
+  - "Eval CLI"
+  - "release_gate_suite.json fixtures"
+  - "prelaunch launch evidence packet"
+likely_files:
+  - "README.md"
+  - "main.kujo"
+  - "examples/release_gate_suite.json"
+  - "scripts/release_quality_gates.sh"
+acceptance_criteria:
+  - "README readiness wording stays limited to local and CI-oriented use unless target-environment proof is present."
+  - "Fixture-backed release gate suite runs successfully and produces deterministic JSON/HTML artifacts."
+  - "Docs command parity, artifact contracts, and runtime parity checks pass locally."
+  - "Release quality gates pass locally without live credentials or publishing actions."
+  - "External launch blockers are recorded instead of converted into unsupported readiness claims."
+eval_requirements:
+  - description: "Run the fixture-backed release gate suite with JSON output."
+    check_type: "command"
+    params:
+      command: "kujo run main.kujo run examples/release_gate_suite.json --output-dir .eval_launch_smoke --json"
+  - description: "Render the release gate report from fixture-backed checks."
+    check_type: "command"
+    params:
+      command: "kujo run main.kujo report examples/release_gate_suite.json --rerun --output-dir .eval_launch_smoke --format html"
+  - description: "Run repository tests."
+    check_type: "command"
+    params:
+      command: "kujo test"
+  - description: "Verify docs, artifact contracts, and release gates."
+    check_type: "command"
+    params:
+      command: "bash scripts/generate_command_inventory.sh --check && bash scripts/verify_docs_command_parity.sh && bash scripts/verify_artifact_contract.sh && bash scripts/release_quality_gates.sh"
+risks:
+  - risk: "Docker image readiness could be overstated if target registries or scanners are not used."
+    mitigation: "Document container production use as target-environment work requiring rebuild, scan, and runner-boundary validation."
+    severity: "medium"
+  - risk: "Workcell proof can be incomplete when the local Docker daemon is unavailable."
+    mitigation: "Record a Workcell exception and keep repo-native gates plus drift/readiness scans as closest equivalent proof."
+    severity: "medium"
+dependencies:
+  - "kujo on PATH"
+  - "Python 3 for docs and artifact verification helpers"
+  - "Docker daemon only for Workcell container proof"
+review_expectations:
+  - "Review README readiness wording for unsupported production claims."
+  - "Review command outputs and generated evidence before launch sign-off."
+human_approval_points:
+  - "Before publishing packages or public releases"
+  - "Before claiming production readiness in a target environment"
+priority: "high"
+tags:
+  - "kujo"
+  - "eval"
+  - "launch-readiness"
