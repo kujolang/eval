@@ -61,7 +61,7 @@ Eval answers:
 
 ## Containerized Usage
 
-This repository includes a production-usable multi-stage `Dockerfile` that compiles the Kujo runtime from the pinned revision in `RUNTIME_VERSION`.
+This repository includes a local/CI-oriented multi-stage `Dockerfile` that compiles the Kujo runtime from the pinned revision in `RUNTIME_VERSION`. Treat production deployment of the image as target-environment work: rebuild it in your controlled pipeline, scan it with your registry policy, and validate it against your runner boundaries before using it for production claims.
 
 Build the image:
 
