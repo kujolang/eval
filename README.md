@@ -87,18 +87,15 @@ Generate a report in the container:
 docker run --rm -v "$PWD":/workspace -w /workspace kujo-eval:local report --format json --out eval_results/report.json
 ```
 
-## Runtime Binary Selection (Important)
+## Runtime Binary Selection
 
-`kujo-eval` expects the Kujo language runtime binary, not the Python `kujo` linter command.
-
-Recommended runtime for this repository:
+`kujo-eval` expects the Kujo language runtime command to be available as `kujo`:
 
 ```bash
-export KUJO_BIN=kujo
-"$KUJO_BIN" --version
+kujo --version
 ```
 
-When running examples in this README, replace `kujo` with `"$KUJO_BIN"` if your shell resolves `kujo` to a different tool.
+If your shell resolves `kujo` to a different tool, fix your `PATH` before running these examples.
 
 ## VM-First Migration Note (Interpreter-Era Guidance)
 
@@ -153,7 +150,6 @@ Version note:
 Example:
 
 ```bash
-export KUJO_BIN=kujo
 export KUJO_EVAL_GATE_TIMEOUT_SECONDS=180
 export KUJO_EVAL_BENCH_SUITE_BUDGET_MS=600
 export KUJO_EVAL_BENCH_MEDIUM_SUITE_BUDGET_MS=3000
@@ -323,25 +319,21 @@ Profiles can be set as top-level `path_policy_profile` defaults or inside `polic
 
 ## Repository Status (Validated Commands)
 
-Validated on 2026-05-25 with:
-
-```bash
-export KUJO_BIN=kujo
-```
+Validated on 2026-05-25 with the `kujo` command on `PATH`.
 
 | Command | Exit | Expected Output Signal |
 |---|---:|---|
-| `$KUJO_BIN run main.kujo version` | 0 | Prints `Eval v2.0.0` and `Contract version: 2.0.0` |
-| `$KUJO_BIN run main.kujo list-checks` | 0 | Prints available check list and `Total: 27 check types` |
-| `$KUJO_BIN run main.kujo snapshots` | 0 | Prints snapshot listing output (or empty listing message) |
-| `$KUJO_BIN run main.kujo diff README.md README.md` | 0 | Reports no differences for identical files |
-| `$KUJO_BIN run main.kujo run examples/release_gate_suite.json --output-dir .eval_status --json` | 0 | JSON result envelope includes `"ok":true` |
-| `$KUJO_BIN run main.kujo run examples/release_gate_suite.json --output-dir .eval_status --summary-only` | 0 | Prints compact summary and overwrites prior run artifacts safely |
-| `$KUJO_BIN run main.kujo report examples/release_gate_suite.json --rerun --output-dir .eval_status --json` | 0 | JSON result envelope includes `"ok":true` |
-| `$KUJO_BIN run main.kujo report examples/release_gate_suite.json --rerun --output-dir .eval_status --format junit` | 0 | Generates `.eval_status/eval-report.xml` |
-| `$KUJO_BIN run main.kujo report examples/release_gate_suite.json --rerun --output-dir .eval_status --format tap` | 0 | Generates `.eval_status/eval-report.tap` |
-| `$KUJO_BIN test` | 0 | Test suite runner reports all configured test files passing |
-| `$KUJO_BIN test --runtime vm` | 0 | VM runtime reports all 7 test suites passing |
+| `kujo run main.kujo version` | 0 | Prints `Eval v2.0.0` and `Contract version: 2.0.0` |
+| `kujo run main.kujo list-checks` | 0 | Prints available check list and `Total: 27 check types` |
+| `kujo run main.kujo snapshots` | 0 | Prints snapshot listing output (or empty listing message) |
+| `kujo run main.kujo diff README.md README.md` | 0 | Reports no differences for identical files |
+| `kujo run main.kujo run examples/release_gate_suite.json --output-dir .eval_status --json` | 0 | JSON result envelope includes `"ok":true` |
+| `kujo run main.kujo run examples/release_gate_suite.json --output-dir .eval_status --summary-only` | 0 | Prints compact summary and overwrites prior run artifacts safely |
+| `kujo run main.kujo report examples/release_gate_suite.json --rerun --output-dir .eval_status --json` | 0 | JSON result envelope includes `"ok":true` |
+| `kujo run main.kujo report examples/release_gate_suite.json --rerun --output-dir .eval_status --format junit` | 0 | Generates `.eval_status/eval-report.xml` |
+| `kujo run main.kujo report examples/release_gate_suite.json --rerun --output-dir .eval_status --format tap` | 0 | Generates `.eval_status/eval-report.tap` |
+| `kujo test` | 0 | Test suite runner reports all configured test files passing |
+| `kujo test --runtime vm` | 0 | VM runtime reports all 7 test suites passing |
 
 ## Check Types
 
