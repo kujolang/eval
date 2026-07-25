@@ -54,7 +54,7 @@ check "RUNTIME_VERSION file exists" test -f RUNTIME_VERSION
 
 # 6. All documentation files referenced in README exist
 check "README doc references are valid" bash -c '
-    for doc in docs/ARCHITECTURE.md docs/CONTRIBUTING.md docs/SECURITY.md docs/eval-suite-reference.md docs/improvement-checklist.md docs/agent-notes.md; do
+    for doc in docs/ARCHITECTURE.md CONTRIBUTING.md SECURITY.md docs/eval-suite-reference.md docs/improvement-checklist.md docs/agent-notes.md; do
         [ -f "$doc" ] || exit 1
     done
 '

@@ -30,6 +30,8 @@
 - Updated schema policy fields to stage-aware `path_policy_mode` behavior (`open`/`allowlist-required`) for clearer governance defaults.
 
 ### FIX
+- Fixed command-policy allowlist matching so commands allowed by later entries in `allowed_commands` are accepted without prefix-matching similarly named commands.
+- Corrected release/supply-chain documentation gates to validate the actual root `CONTRIBUTING.md` and `SECURITY.md` governance files.
 - Hardened command safety evaluation in `src/checks.kujo` by normalizing case/whitespace before policy and dangerous-pattern checks.
 - Added security regression coverage for uppercase dangerous-command bypass attempts.
 - Restored stable report rendering flow after malformed patch collision in `src/report.kujo` and validated with full suite passes.

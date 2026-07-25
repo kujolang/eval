@@ -87,6 +87,16 @@ test "check_command_succeeds enforces allowed_commands allowlist" {
 	assert_true(contains(msg, "allowed") == 1)
 }
 
+test "check_command_succeeds allows later allowed command entries" {
+	result := check_command_succeeds({"command": "echo safety test", "allowed_commands": ["kujo", "echo", "cat", "bash"], "allowed_command_patterns": ["echo"], "command_pattern_match_mode": "substring"})
+	assert_true(result["ok"])
+}
+
+test "check_command_succeeds does not prefix-match command names" {
+	blocked := check_command_succeeds({"command": "echo-safe payload", "allowed_commands": ["echo"]})
+	assert_false(blocked["ok"])
+}
+
 test "check_command_succeeds enforces allowed_command_patterns allowlist" {
 	result := check_command_succeeds({"command": "echo secure payload", "allowed_command_patterns": ["echo secure"]})
 	assert_true(result["ok"])

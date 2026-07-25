@@ -625,9 +625,9 @@ See [`docs/enhancement-roadmap.md`](docs/enhancement-roadmap.md) for the full pr
 - `tests/`: 7 test suites — contract, security, CLI integration, coverage, benchmark, quality, stress
 - `examples/`: Example eval suites (basic, release-gate, self-check, snapshot)
 - `schema/eval-suite.schema.json`: JSON Schema for VSCode autocomplete + validation
-- `docs/`: Architecture, contributing, security, agent notes, ecosystem integration, roadmaps
-- `docs/CONTRIBUTING.md`: Contributing guide and code conventions
-- `docs/SECURITY.md`: Security model, known limitations, reporting
+- `docs/`: Architecture, agent notes, ecosystem integration, roadmaps
+- `CONTRIBUTING.md`: Contributing guide and code conventions
+- `SECURITY.md`: Security model, known limitations, reporting
 - `docs/agent-notes.md`: Kujo runtime quirks and lessons learned
 - `docs/release-candidate-runbook.md`: Human runbook for pre-tag release validation
 - `RUNTIME_VERSION`: Pinned Kujo runtime commit hash for reproducible CI
@@ -635,7 +635,7 @@ See [`docs/enhancement-roadmap.md`](docs/enhancement-roadmap.md) for the full pr
 ### Root Layout Notes
 
 - `main.kujo` intentionally stays at the repository root as the CLI entrypoint referenced by docs, scripts, and CI.
-- `CONTRIBUTING.md` and `SECURITY.md` at root are lightweight pointers for enterprise discoverability; canonical content remains in `docs/`.
+- `CONTRIBUTING.md` and `SECURITY.md` at root are the canonical governance documents for GitHub and package-manager discoverability.
 - Functional implementation modules remain under `src/`; root files are only packaging, entrypoint, policy, and governance artifacts.
 - `tests/*.out` files are treated as runtime artifacts and intentionally remain untracked.
 

@@ -109,7 +109,7 @@ func split_command_tokens(raw_text) {
 	current := ""
 	i := 0
 	while i < len(text) {
-		c := text[i]
+		c := substring(text, i, i + 1)
 		if c == " " || c == "\t" || c == "\n" || c == "\r" {
 			if current != "" {
 				tokens = push(tokens, current)
@@ -207,23 +207,21 @@ func is_command_safe(command, allowed_commands, allowed_command_patterns, blocke
 	}
 
 	if type(allowed_commands) == "array" && len(allowed_commands) > 0 {
-		cmd_first_word := ""
-		cmd_tokens := split_command_tokens(policy_command)
-		if len(cmd_tokens) > 0 {
-			cmd_first_word = cmd_tokens[0]
-		}
-
-		i := 0
 		found := false
-		while i < len(allowed_commands) {
-			allowed_normalized := normalize_command_for_policy(allowed_commands[i])
-			allowed_tokens := split_command_tokens(allowed_normalized)
-			if len(allowed_tokens) > 0 && allowed_tokens[0] == cmd_first_word {
+		aci := 0
+		while aci < len(allowed_commands) {
+			allowed_normalized := normalize_command_for_policy(allowed_commands[aci])
+			if allowed_normalized != "" && (policy_command == allowed_normalized || starts_with(policy_command, allowed_normalized + " ")) {
 				found = true
 			}
-			i := i + 1
+			aci = aci + 1
 		}
 		if found == false {
+			cmd_first_word := ""
+			cmd_tokens := split_command_tokens(policy_command)
+			if len(cmd_tokens) > 0 {
+				cmd_first_word = cmd_tokens[0]
+			}
 			return {
 				"safe": false,
 				"reason": "Command '" + cmd_first_word + "' is not in the allowed list"
