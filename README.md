@@ -6,6 +6,8 @@
 
 Evaluation framework for AI-native software — deterministic checks for agents, CLIs, files, snapshots, and workflow outputs.
 
+> **v1.0.0 local release candidate:** 27 checks, 14 CLI commands, 7 test suites.
+
 Eval answers the question:
 
 > Did the agent, workflow, model, generated output, or code change actually do the right thing?
