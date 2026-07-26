@@ -58,6 +58,7 @@
 ### DOCS
 - Added canonical-example and generated/bulk search hygiene guidance for agents and contributors.
 - Shortened the README quick start to a minimal runnable path with expected output signals.
+- Updated local test command documentation to show the clean-checkout baseline generation step.
 - Labeled `examples/basic_suite.json` as an expected-fail reporting demo.
 - Added VM-first migration guidance for legacy interpreter-era commands in `README.md`.
 - Added migration notes in `docs/agent-notes.md` and `docs/eval-suite-reference.md` to keep command guidance internally consistent.

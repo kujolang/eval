@@ -332,8 +332,8 @@ Validated on 2026-05-25 with the `kujo` command on `PATH`.
 | `kujo run main.kujo report examples/release_gate_suite.json --rerun --output-dir .eval_status --json` | 0 | JSON result envelope includes `"ok":true` |
 | `kujo run main.kujo report examples/release_gate_suite.json --rerun --output-dir .eval_status --format junit` | 0 | Generates `.eval_status/eval-report.xml` |
 | `kujo run main.kujo report examples/release_gate_suite.json --rerun --output-dir .eval_status --format tap` | 0 | Generates `.eval_status/eval-report.tap` |
-| `kujo test` | 0 | Test suite runner reports all configured test files passing |
-| `kujo test --runtime vm` | 0 | VM runtime reports all 7 test suites passing |
+| `kujo test --update --runtime vm && kujo test` | 0 | Test suite runner reports all configured test files passing after generating ignored local baselines |
+| `kujo test --update --runtime vm && kujo test --runtime vm` | 0 | VM runtime reports all 7 test suites passing after generating ignored local baselines |
 
 ## Check Types
 

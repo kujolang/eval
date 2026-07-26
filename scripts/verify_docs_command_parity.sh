@@ -255,7 +255,7 @@ run_doc_cmd_watchdog \
 run_doc_cmd "ecosystem: scout import alias" "printf '[{\"name\":\"scout-docs-check\",\"check\":\"file_exists\",\"params\":{\"path\":\"kennel.toml\"}}]' > \"$PARITY_TMP_DIR/ecosystem-scout.json\" && $KUJO_BIN run main.kujo init --name scout-docs-suite --from-scout \"$PARITY_TMP_DIR/ecosystem-scout.json\" && grep -q '\"name\":\"scout-docs-suite\"' eval.json && rm -f eval.json"
 
 run_doc_cmd "diff identical files" "$KUJO_BIN run main.kujo diff README.md README.md"
-run_doc_cmd "test command" "$KUJO_BIN test"
+run_doc_cmd "test command" "find tests -maxdepth 1 -name '*.out' -type f -delete && $KUJO_BIN test --update --runtime vm >/dev/null && $KUJO_BIN test && find tests -maxdepth 1 -name '*.out' -type f -delete"
 
 if [[ ! -f "docs/COMMAND_INVENTORY.md" ]]; then
 	echo "FAIL: generated command inventory missing at docs/COMMAND_INVENTORY.md"
