@@ -7,6 +7,14 @@ KUJO_BIN="${KUJO_BIN:-kujo}"
 PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
+cleanup_test_outputs() {
+	find tests -maxdepth 1 -name "*.out" -type f -delete
+	rm -rf .eval_bench_io-heavy_gate .eval_bench_large_gate .eval_bench_medium_gate
+}
+
+cleanup_test_outputs
+trap cleanup_test_outputs EXIT
+
 echo "=== Eval Release Quality Gates ==="
 echo ""
 
@@ -16,6 +24,11 @@ export KUJO_EVAL_BENCHMARK_ARTIFACT_PATH="$PROJECT_ROOT/eval_results/benchmarks.
 # Gate 1: All test suites pass
 echo "[GATE 1] Running test suites..."
 TEST_OUT=""
+if ! TEST_OUT="$($KUJO_BIN test --update --runtime vm 2>&1)"; then
+	echo "$TEST_OUT"
+    echo "FAIL: Test suite baseline generation failed"
+    exit 1
+fi
 if ! TEST_OUT="$($KUJO_BIN test 2>&1)"; then
 	echo "$TEST_OUT"
     echo "FAIL: Test suites failed"

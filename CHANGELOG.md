@@ -36,7 +36,7 @@
 - Added security regression coverage for uppercase dangerous-command bypass attempts.
 - Restored stable report rendering flow after malformed patch collision in `src/report.kujo` and validated with full suite passes.
 - Fixed an unbound-variable bug in `scripts/verify_docs_command_parity.sh` so Scout import parity checks execute deterministically.
-- Fixed the test-runtime parity verifier so strict-shell pipelines do not mask successful `kujo test` output.
+- Fixed release and parity gates so generated `.out` baselines are produced and cleaned inside the gate instead of depending on stale ignored local files.
 
 ### SECURITY
 - Added strict command policy enforcement controls for CI/release stages (`require_command_policy`) with stage overlay support.
