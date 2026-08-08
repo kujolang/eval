@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.0 — Production Release
+## 1.0.0 — 2026-08-08 — Production Release
 
 ### FEATURE
 - Added a production-usable multi-stage `Dockerfile` that compiles the Kujo runtime from pinned `RUNTIME_VERSION` (with optional `KUJO_RUNTIME_REF` override) and runs `eval` via `kujo run main.kujo`.

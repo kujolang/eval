@@ -315,4 +315,3 @@ eval(<ITEM_ID>): <concise imperative summary>
 | `src/report.kujo` | ~250 | `generate_markdown_report`, `save_report`, `print_report` |
 | `src/snapshot.kujo` | ~200 | `save_snapshot`, `compare_snapshot`, `list_snapshots`, `delete_snapshot` |
 | `tests/contract_tests.kujo` | ~690 | All contract tests |
-| `docs/improvement-checklist.md` | ~450 | 44 checklist items |

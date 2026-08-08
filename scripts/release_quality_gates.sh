@@ -410,7 +410,7 @@ echo ""
 
 # Gate 6: Docs freshness — key files exist
 echo "[GATE 6] Documentation freshness..."
-for doc in README.md CONTRIBUTING.md SECURITY.md docs/ARCHITECTURE.md docs/eval-suite-reference.md docs/improvement-checklist.md docs/agent-notes.md docs/release-candidate-runbook.md; do
+for doc in README.md CONTRIBUTING.md SECURITY.md docs/ARCHITECTURE.md docs/eval-suite-reference.md docs/agent-notes.md docs/release-candidate-runbook.md; do
     if [ ! -f "$doc" ]; then
         echo "FAIL: Missing documentation file: $doc"
         exit 1

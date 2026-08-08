@@ -6,7 +6,7 @@
 
 Evaluation framework for AI-native software — deterministic checks for agents, CLIs, files, snapshots, and workflow outputs.
 
-> **v1.0.0 local release candidate:** 27 checks, 14 CLI commands, 7 test suites.
+> **v1.0.0 stable release:** 27 checks, 14 CLI commands, 7 test suites.
 
 Eval answers the question:
 
@@ -567,8 +567,6 @@ kujo run main.kujo version
 The result envelope contract (`{ok, error, data}`) is stable since v2.0.0 and used consistently across all source modules.
 
 ## Roadmap
-
-See [`docs/enhancement-roadmap.md`](docs/enhancement-roadmap.md) for the full prioritized roadmap. **All 37 of 37 items complete** 🎉
 
 **Completed**:
 - [x] 27 check types (command, file, output, JSON, snapshot, diff, glob, HTTP, env, file size)
