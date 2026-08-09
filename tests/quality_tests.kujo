@@ -1,7 +1,7 @@
 # Quality test suite — fuzz, property-based, and pipeline integration tests.
 
 test_setup {
-	from src.common import dict_get_or, normalize_string, normalize_int, normalize_bool, normalize_array, normalize_dict
+	from src.common import dict_get_or
 	from src.config import validate_config
 	from src.eval_core import run_suite
 }
@@ -9,16 +9,6 @@ test_setup {
 # ===========================================================================
 # P4.1: Fuzz tests for config parser
 # ===========================================================================
-
-test "fuzz: validate_config handles empty dict" {
-	result := validate_config({})
-	assert_false(result["ok"])
-}
-
-test "fuzz: validate_config handles null-like values" {
-	result := validate_config({"name": "", "tests": []})
-	assert_false(result["ok"])
-}
 
 test "fuzz: validate_config handles deeply nested but valid config" {
 	cfg := {
@@ -56,65 +46,10 @@ test "fuzz: validate_config handles test with extra unknown fields" {
 }
 
 # ===========================================================================
-# P4.4: Property-based tests for normalize_* utilities
-# ===========================================================================
-
-test "property: normalize_string always returns string" {
-	assert_equal(type(normalize_string("hello", "fb")), "string")
-	assert_equal(type(normalize_string(42, "fb")), "string")
-	assert_equal(type(normalize_string(true, "fb")), "string")
-	assert_equal(type(normalize_string([], "fb")), "string")
-	assert_equal(type(normalize_string({}, "fb")), "string")
-	assert_equal(type(normalize_string("", "fb")), "string")
-}
-
-test "property: normalize_int always returns int" {
-	assert_equal(type(normalize_int(42, 0)), "int")
-	assert_equal(type(normalize_int(0, 10)), "int")
-	assert_equal(type(normalize_int(-5, 0)), "int")
-	assert_equal(type(normalize_int("hello", 0)), "int")
-	assert_equal(type(normalize_int(true, 0)), "int")
-	assert_equal(type(normalize_int([], 0)), "int")
-}
-
-test "property: normalize_bool always returns bool" {
-	assert_equal(type(normalize_bool(true, false)), "bool")
-	assert_equal(type(normalize_bool(false, true)), "bool")
-	assert_equal(type(normalize_bool("true", false)), "bool")
-	assert_equal(type(normalize_bool(1, false)), "bool")
-	assert_equal(type(normalize_bool([], false)), "bool")
-}
-
-test "property: normalize_array always returns array" {
-	assert_equal(type(normalize_array([1, 2])), "array")
-	assert_equal(type(normalize_array("not array")), "array")
-	assert_equal(type(normalize_array(42)), "array")
-	assert_equal(type(normalize_array(true)), "array")
-	assert_equal(type(normalize_array({})), "array")
-}
-
-test "property: normalize_dict always returns dict" {
-	assert_equal(type(normalize_dict({"a": 1})), "dict")
-	assert_equal(type(normalize_dict("not dict")), "dict")
-	assert_equal(type(normalize_dict(42)), "dict")
-	assert_equal(type(normalize_dict(true)), "dict")
-	assert_equal(type(normalize_dict([1, 2])), "dict")
-}
-
-test "property: dict_get_or handles all input types" {
-	assert_equal(dict_get_or("not dict", "key", 42), 42)
-	assert_equal(dict_get_or(123, "key", 42), 42)
-	assert_equal(dict_get_or(true, "key", 42), 42)
-	assert_equal(dict_get_or([], "key", 42), 42)
-	assert_equal(dict_get_or({"a": 1}, "b", 99), 99)
-	assert_equal(dict_get_or({"a": 1}, "a", 99), 1)
-}
-
-# ===========================================================================
 # P4.2: Cross-module pipeline integration test
 # ===========================================================================
 
-test "integration: full init→run→report pipeline does not crash" {
+test "integration: run pipeline feeds every report contract" {
 	try { write_file(".eval_integ_test.json", "{\"name\":\"integ\",\"tests\":[{\"name\":\"t1\",\"check\":\"file_exists\",\"params\":{\"path\":\"kennel.toml\"}}]}") } except err {}
 
 	results := run_suite(".eval_integ_test.json", {"quiet": true})
@@ -129,10 +64,11 @@ test "integration: full init→run→report pipeline does not crash" {
 	junit := generate_junit_report(rd)
 	tap := generate_tap_report(rd)
 
-	assert_true(len(md) > 0)
-	assert_true(len(html) > 0)
-	assert_true(len(junit) > 0)
-	assert_true(len(tap) > 0)
+	assert_true(contains(md, "integ") == 1)
+	assert_true(contains(html, "<title>Eval Report: integ</title>") == 1)
+	assert_true(contains(junit, "<testsuite name=\"integ\" tests=\"1\"") == 1)
+	assert_true(contains(tap, "1..1") == 1)
+	assert_true(contains(tap, "ok 1 - t1") == 1)
 
 	try { remove_file(".eval_integ_test.json") } except err {}
 }

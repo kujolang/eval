@@ -45,9 +45,11 @@ test "make_error_result returns ok=false with error message" {
 	assert_equal(result["data"]["detail"], "info")
 }
 
-test "make_result handles empty data dict" {
-	result := make_result(true, "", {})
+test "make_result preserves the generic result envelope" {
+	result := make_result(true, "", {"value": 7})
 	assert_true(result["ok"])
+	assert_equal(result["error"], "")
+	assert_equal(result["data"]["value"], 7)
 }
 
 test "contains_text handles start and middle matches" {
@@ -62,8 +64,15 @@ test "contains_text handles start and middle matches" {
 
 test "KNOWN_CHECKS returns all check types" {
 	checks := KNOWN_CHECKS()
-	assert_true(len(checks) > 0)
-	assert_true(len(checks) >= 12)
+	assert_equal(checks, [
+		"command_succeeds", "command_fails", "file_exists", "file_does_not_exist",
+		"file_contains", "file_does_not_contain", "json_matches_shape", "output_contains",
+		"output_does_not_contain", "snapshot_matches", "directory_diff", "exit_code_equals",
+		"file_matches_glob", "output_matches_glob", "json_value_equals", "file_size_greater_than",
+		"file_size_less_than", "env_var_equals", "stdout_json_matches_shape", "http_status",
+		"http_body_contains", "command_stdout_json_path_equals", "file_matches_regex",
+		"command_timing_less_than", "file_line_count", "directory_contains", "two_files_equal"
+	])
 }
 
 # ===========================================================================

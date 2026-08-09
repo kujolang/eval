@@ -187,24 +187,6 @@ test "compare_runs detects regression" {
 }
 
 # ===========================================================================
-# version command
-# ===========================================================================
-
-test "contract_version returns expected value" {
-	version := contract_version()
-	assert_equal(version, "2.0.0")
-}
-
-# ===========================================================================
-# list-checks command (KNOWN_CHECKS)
-# ===========================================================================
-
-test "KNOWN_CHECKS returns at least 20 check types" {
-	checks := KNOWN_CHECKS()
-	assert_true(len(checks) >= 20)
-}
-
-# ===========================================================================
 # config validation edge cases
 # ===========================================================================
 

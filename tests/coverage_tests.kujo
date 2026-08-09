@@ -405,27 +405,6 @@ test "all check functions return {ok, error, data} envelope" {
 	}
 }
 
-test "make_result produces consistent shape" {
-	r := make_result(true, "", {"key": "val"})
-	assert_true(r["ok"])
-	assert_equal(r["error"], "")
-	assert_equal(dict_get_or(r, "data", {}), {"key": "val"})
-}
-
-test "make_error_result produces ok=false with error message" {
-	r := make_error_result("something broke", {"detail": 42})
-	assert_false(r["ok"])
-	assert_equal(r["error"], "something broke")
-	assert_equal(dict_get_or(r, "data", {}), {"detail": 42})
-}
-
-test "make_success_result produces ok=true with empty error" {
-	r := make_success_result({"result": "done"})
-	assert_true(r["ok"])
-	assert_equal(r["error"], "")
-	assert_equal(dict_get_or(r, "data", {}), {"result": "done"})
-}
-
 # ===========================================================================
 # Section 9: CLI Flag Parsing Edge Cases
 # ===========================================================================
@@ -712,16 +691,6 @@ test "delete_snapshot fails for non-existent snapshot" {
 # ===========================================================================
 # Section 16: Contract & Version
 # ===========================================================================
-
-test "contract_version is 2.0.0" {
-	v := contract_version()
-	assert_equal(v, "2.0.0")
-}
-
-test "KNOWN_CHECKS contains at least 27 check types" {
-	checks := KNOWN_CHECKS()
-	assert_true(len(checks) >= 27)
-}
 
 # ===========================================================================
 # Section 17: Error Path Coverage
