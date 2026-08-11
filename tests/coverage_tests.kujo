@@ -438,6 +438,33 @@ test "parse_cli_flags handles combined flags" {
 	assert_equal(positionals[1], "myconfig.json")
 }
 
+test "parse_cli_flags does not consume positionals after boolean flags" {
+	parsed := parse_cli_flags(["run", "--summary-only", "suite.json", "--artifact-checksums", "--history"])
+	flags := parsed["flags"]
+	assert_true(flags["summary-only"])
+	assert_true(flags["artifact-checksums"])
+	assert_true(flags["history"])
+	assert_equal(parsed["positionals"], ["run", "suite.json"])
+}
+
+test "JUnit report escapes XML attribute values" {
+	report := generate_junit_report({
+		"suite_name": "suite & <xml>",
+		"passed": 0,
+		"failed": 1,
+		"skipped": 0,
+		"duration_ms": 1,
+		"test_results": [{
+			"name": "quotes \" and ' apostrophe",
+			"passed": false,
+			"message": "expected <value> & got \"other\""
+		}]
+	})
+	assert_true(contains(report, "suite &amp; &lt;xml&gt;") == 1)
+	assert_true(contains(report, "quotes &quot; and &apos; apostrophe") == 1)
+	assert_true(contains(report, "expected &lt;value&gt; &amp; got &quot;other&quot;") == 1)
+}
+
 test "parse_cli_flags handles --config with value" {
 	parsed := parse_cli_flags(["--config", "custom.json"])
 	flags := parsed["flags"]

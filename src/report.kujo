@@ -486,8 +486,24 @@ export func print_report(results, format) {
 	return make_result(true, "", {"message": "Report printed to stdout"})
 }
 
+func xml_escape_attribute(text) {
+	result := ""
+	i := 0
+	while i < len(text) {
+		ch := text[i]
+		if ch == "&" { result = result + "&amp;" }
+		else if ch == "<" { result = result + "&lt;" }
+		else if ch == ">" { result = result + "&gt;" }
+		else if ch == "\"" { result = result + "&quot;" }
+		else if ch == "'" { result = result + "&apos;" }
+		else { result = result + ch }
+		i := i + 1
+	}
+	return result
+}
+
 export func generate_junit_report(results) {
-	suite_name := normalize_string(dict_get_or(results, "suite_name", ""), "Eval Suite")
+	suite_name := xml_escape_attribute(normalize_string(dict_get_or(results, "suite_name", ""), "Eval Suite"))
 	passed_count := dict_get_or(results, "passed", 0)
 	failed_count := dict_get_or(results, "failed", 0)
 	skipped_count := dict_get_or(results, "skipped", 0)
@@ -504,9 +520,9 @@ export func generate_junit_report(results) {
 		while ti < len(test_results_raw) {
 			tr := test_results_raw[ti]
 			if type(tr) == "dict" {
-				name := normalize_string(dict_get_or(tr, "name", ""), "unnamed")
+				name := xml_escape_attribute(normalize_string(dict_get_or(tr, "name", ""), "unnamed"))
 				passed_flag := dict_get_or(tr, "passed", false)
-				message := normalize_string(dict_get_or(tr, "message", ""), "")
+				message := xml_escape_attribute(normalize_string(dict_get_or(tr, "message", ""), ""))
 				xml = xml + "  <testcase name=\"" + name + "\" time=\"0\">\n"
 				if passed_flag == false {
 					xml = xml + "    <failure message=\"" + message + "\"/>\n"

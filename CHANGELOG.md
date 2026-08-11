@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### FIX
+- Preserved per-test `skip`, `tags`, and `depends_on` directives during config validation, and stopped dependent tests from executing after a prerequisite failure.
+- Preserved the documented `setup`, `teardown`, `before_each`, and `after_each` suite hooks during config validation.
+- Fixed valueless CLI switches such as `--summary-only`, `--artifact-checksums`, `--history`, and incremental-report flags so they no longer consume the following positional argument.
+- Propagated snapshot write failures from `snapshot_matches` update mode instead of reporting a false success.
+- Escaped suite names, test names, and failure messages in JUnit XML attributes.
+
 ## 1.0.0 — 2026-08-08 — Production Release
 
 ### FEATURE

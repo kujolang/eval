@@ -100,6 +100,14 @@ func value_from_index(text, start_index) {
 	return value
 }
 
+func is_boolean_flag(arg) {
+	return arg == "--help" || arg == "--update-snapshots" || arg == "--json" ||
+		arg == "--rerun" || arg == "--only-failed" || arg == "--quiet" ||
+		arg == "--verbose" || arg == "--dry-run" || arg == "--no-color" ||
+		arg == "--summary-only" || arg == "--artifact-checksums" ||
+		arg == "--history" || arg == "--incremental" || arg == "--incremental-report"
+}
+
 export func parse_cli_flags(args) {
 
 	flags := {}
@@ -109,24 +117,25 @@ export func parse_cli_flags(args) {
 	while i < len(args) {
 		arg := args[i]
 		if starts_with(arg, "--") {
-			if arg == "--help" {
-				flags["help"] := true
-			} else if arg == "--update-snapshots" {
-				flags["update_snapshots"] := true
-			} else if arg == "--json" {
-				flags["json_output"] := true
-			} else if arg == "--rerun" {
-				flags["rerun"] := true
-			} else if arg == "--only-failed" {
-				flags["only_failed"] := true
-			} else if arg == "--quiet" {
-				flags["quiet"] := true
-			} else if arg == "--verbose" {
-				flags["verbose"] := true
-			} else if arg == "--dry-run" {
-				flags["dry_run"] := true
-			} else if arg == "--no-color" {
-				flags["no_color"] := true
+			if is_boolean_flag(arg) {
+				key := ""
+				k := 2
+				while k < len(arg) {
+					key = key + arg[k]
+					k := k + 1
+				}
+				flags[key] := true
+				if arg == "--update-snapshots" {
+					flags["update_snapshots"] := true
+				} else if arg == "--json" {
+					flags["json_output"] := true
+				} else if arg == "--only-failed" {
+					flags["only_failed"] := true
+				} else if arg == "--dry-run" {
+					flags["dry_run"] := true
+				} else if arg == "--no-color" {
+					flags["no_color"] := true
+				}
 			} else if starts_with(arg, "--repeat=") {
 				flags["repeat"] := value_from_index(arg, 9)
 			} else if starts_with(arg, "--seed=") {
