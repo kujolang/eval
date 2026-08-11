@@ -117,6 +117,43 @@ test "validate_config accepts valid config" {
 	assert_equal(len(cfg["tests"]), 1)
 }
 
+test "validate_config preserves test execution directives" {
+	result := validate_config({
+		"name": "directive-suite",
+		"tests": [{
+			"name": "dependent",
+			"check": "file_exists",
+			"params": {"path": "kennel.toml"},
+			"skip": true,
+			"tags": ["smoke", "fast"],
+			"depends_on": ["prerequisite"]
+		}]
+	})
+	assert_true(result["ok"])
+	config := result["config"]
+	tdef := config["tests"][0]
+	assert_true(tdef["skip"])
+	assert_equal(tdef["tags"], ["smoke", "fast"])
+	assert_equal(tdef["depends_on"], ["prerequisite"])
+}
+
+test "validate_config preserves suite hooks" {
+	result := validate_config({
+		"name": "hook-suite",
+		"setup": "echo setup",
+		"teardown": "echo teardown",
+		"before_each": "echo before",
+		"after_each": "echo after",
+		"tests": [{"name": "ok", "check": "file_exists", "params": {"path": "kennel.toml"}}]
+	})
+	assert_true(result["ok"])
+	config := result["config"]
+	assert_equal(config["setup"], "echo setup")
+	assert_equal(config["teardown"], "echo teardown")
+	assert_equal(config["before_each"], "echo before")
+	assert_equal(config["after_each"], "echo after")
+}
+
 test "load_config returns error for missing file" {
 	result := load_config("./nonexistent_eval_config_12345.json")
 	assert_false(result["ok"])
@@ -563,6 +600,21 @@ test "check_snapshot_matches with update flag creates snapshot" {
 	} except err {}
 }
 
+test "check_snapshot_matches reports snapshot write failures" {
+	try { write_file(".eval_snapshot_not_directory", "occupied") } except err {}
+
+	result := check_snapshot_matches({
+		"name": "cannot-write",
+		"content": "content",
+		"snapshot_dir": ".eval_snapshot_not_directory",
+		"update": "true"
+	})
+	assert_false(result["ok"])
+	assert_true(contains(result["error"], "Failed to write snapshot") == 1)
+
+	try { remove_file(".eval_snapshot_not_directory") } except err {}
+}
+
 test "check_snapshot_matches with update flag updates existing snapshot" {
 	snap_dir := ".eval_test_snapshots_update2"
 	snap_path := snap_dir + "/update-test.snap"
@@ -995,16 +1047,42 @@ test "run_suite filters by tags" {
 	try { remove_file(".eval_test_tags.json") } except err {}
 }
 
-test "run_suite executes setup and teardown hooks" {
+test "run_suite honors explicit skip directives" {
 	try {
-		write_file(".eval_test_hooks.json", "{\"name\":\"hook-suite\",\"setup\":\"echo setup-ran\",\"teardown\":\"echo teardown-ran\",\"tests\":[{\"name\":\"hook test\",\"check\":\"file_exists\",\"params\":{\"path\":\"kennel.toml\"}}]}")
+		write_file(".eval_test_skip.json", "{\"name\":\"skip-suite\",\"tests\":[{\"name\":\"skipped test\",\"check\":\"file_exists\",\"params\":{\"path\":\"kennel.toml\"},\"skip\":true}]}")
 	} except err {}
 
-	results := run_suite(".eval_test_hooks.json", {})
+	results := run_suite(".eval_test_skip.json", {"quiet": true})
+	assert_equal(results["passed"], 0)
+	assert_equal(results["skipped"], 1)
+	try { remove_file(".eval_test_skip.json") } except err {}
+}
+
+test "run_suite skips tests whose dependency failed" {
+	try {
+		write_file(".eval_test_deps.json", "{\"name\":\"dep-suite\",\"tests\":[{\"name\":\"prerequisite\",\"check\":\"file_exists\",\"params\":{\"path\":\".missing_dependency_fixture\"}},{\"name\":\"dependent\",\"check\":\"file_exists\",\"params\":{\"path\":\"kennel.toml\"},\"depends_on\":[\"prerequisite\"]}]}")
+	} except err {}
+
+	results := run_suite(".eval_test_deps.json", {"quiet": true})
+	assert_equal(results["failed"], 1)
+	assert_equal(results["passed"], 0)
+	assert_equal(results["skipped"], 1)
+	assert_equal(results["test_results"][1]["message"], "Skipped: dependency failed")
+	try { remove_file(".eval_test_deps.json") } except err {}
+}
+
+test "run_suite executes all configured hooks" {
+	try {
+		write_file(".eval_test_hooks.json", "{\"name\":\"hook-suite\",\"setup\":\"echo setup > .eval_hook_trace.txt\",\"before_each\":\"echo before >> .eval_hook_trace.txt\",\"after_each\":\"echo after >> .eval_hook_trace.txt\",\"teardown\":\"echo teardown >> .eval_hook_trace.txt\",\"tests\":[{\"name\":\"hook test\",\"check\":\"file_exists\",\"params\":{\"path\":\"kennel.toml\"}}]}")
+	} except err {}
+
+	results := run_suite(".eval_test_hooks.json", {"quiet": true})
 	assert_true(results["ok"])
 	assert_equal(results["total"], 1)
+	assert_equal(read_file(".eval_hook_trace.txt"), "setup\nbefore\nafter\nteardown\n")
 
 	try { remove_file(".eval_test_hooks.json") } except err {}
+	try { remove_file(".eval_hook_trace.txt") } except err {}
 }
 
 test "init_config creates valid config structure" {

@@ -1401,7 +1401,18 @@ export func run_suite(config_path, options) {
 				}
 				if dep_failed {
 					is_skipped = true
-					dep_msg := "Skipped: dependency failed"
+					skipped := skipped + 1
+					test_results := push(test_results, {
+						"name": test_name,
+						"description": test_desc,
+						"check": check_type,
+						"passed": true,
+						"skipped": true,
+						"message": "Skipped: dependency failed",
+						"details": {"depends_on": deps}
+					})
+					i := i + 1
+					continue
 				}
 
 				if dict_get_or(params, "snapshot_dir", "") == "" && snapshot_dir != "" {

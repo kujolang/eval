@@ -778,6 +778,9 @@ export func validate_config(cfg) {
 			"description": normalize_string(dict_get_or(tdef, "description", ""), ""),
 			"check": check_type,
 			"params": normalize_dict(dict_get_or(tdef, "params", {})),
+			"skip": normalize_bool(dict_get_or(tdef, "skip", false), false),
+			"tags": normalize_array(dict_get_or(tdef, "tags", [])),
+			"depends_on": normalize_array(dict_get_or(tdef, "depends_on", [])),
 			"timeout_seconds": normalize_int(dict_get_or(tdef, "timeout_seconds", 0), 0),
 			"retry": normalize_int(dict_get_or(tdef, "retry", 0), 0)
 		}
@@ -903,6 +906,10 @@ export func validate_config(cfg) {
 		"output_dir": normalize_string(dict_get_or(normalized, "output_dir", ""), DEFAULT_OUTPUT_DIR),
 		"snapshot_dir": normalize_string(dict_get_or(normalized, "snapshot_dir", ""), DEFAULT_SNAPSHOT_DIR),
 		"timeout_seconds": normalize_int(dict_get_or(normalized, "timeout_seconds", 0), 0),
+		"setup": normalize_string(dict_get_or(normalized, "setup", ""), ""),
+		"teardown": normalize_string(dict_get_or(normalized, "teardown", ""), ""),
+		"before_each": normalize_string(dict_get_or(normalized, "before_each", ""), ""),
+		"after_each": normalize_string(dict_get_or(normalized, "after_each", ""), ""),
 		"policy_profile": policy_profile,
 		"stop_on_failure": normalize_bool(dict_get_or(normalized, "stop_on_failure", false), false),
 		"history_retention_runs": history_retention_runs,

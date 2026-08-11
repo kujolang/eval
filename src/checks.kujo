@@ -1204,6 +1204,13 @@ export func check_snapshot_matches(params) {
 	if update == "true" || update == "1" {
 		save_result := save_snapshot(snapshot_dir, name, actual_content)
 		save_data := dict_get_or(save_result, "data", {})
+		if dict_get_or(save_result, "ok", false) == false {
+			return make_check_error("snapshot_matches", dict_get_or(save_result, "error", "Failed to update snapshot"), {
+				"name": name,
+				"updated": false,
+				"path": dict_get_or(save_data, "path", "")
+			})
+		}
 		return make_check_success("snapshot_matches", "Snapshot updated: " + name, {"name": name, "updated": true, "path": dict_get_or(save_data, "path", "")})
 	}
 
