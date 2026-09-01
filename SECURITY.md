@@ -19,6 +19,11 @@ Additional command policy controls:
 - `command_pattern_match_mode`: choose `substring` (default) or `token` matching for allow/deny patterns
 - `policy_profile`: bootstrap secure defaults quickly (`strict-ci`, `local-dev`, `release-gate`)
 
+Built-in command-name patterns are checked as complete token sequences, while
+destructive shell and path fragments retain conservative substring matching.
+This rejects commands such as `nc` without blocking benign path or argument
+substrings that merely contain the same letters, such as `concurrent`.
+
 ### Path Boundary Enforcement
 
 `is_path_safe()` in `src/checks.kujo` restricts file access:

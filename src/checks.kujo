@@ -263,11 +263,16 @@ func is_command_safe(command, allowed_commands, allowed_command_patterns, blocke
 
 	di := 0
 	while di < len(DANGEROUS_PATTERNS) {
-		pattern := normalize_command_for_policy(DANGEROUS_PATTERNS[di])
-		if pattern != "" && contains_text(policy_command, pattern) {
+		raw_pattern := DANGEROUS_PATTERNS[di]
+		pattern := normalize_command_for_policy(raw_pattern)
+		mut dangerous_match_mode := "substring"
+		if len(raw_pattern) > 0 && substring(raw_pattern, len(raw_pattern) - 1, len(raw_pattern)) == " " {
+			dangerous_match_mode = "token"
+		}
+		if pattern != "" && policy_pattern_matches(policy_command, pattern, dangerous_match_mode) {
 			return {
 				"safe": false,
-				"reason": "Command contains dangerous pattern: '" + pattern + "'"
+				"reason": "Command contains dangerous pattern: '" + pattern + "' (mode: " + dangerous_match_mode + ")"
 			}
 		}
 		di := di + 1

@@ -135,6 +135,14 @@ test "check_command_succeeds token mode applies blocked_arg_patterns by token se
 	assert_false(blocked["ok"])
 }
 
+test "check_command_succeeds token mode applies built-in dangerous patterns by token sequence" {
+	allowed := check_command_succeeds({"command": "echo smtp_concurrent_service.sh", "command_pattern_match_mode": "token"})
+	assert_true(allowed["ok"])
+
+	blocked := check_command_succeeds({"command": "nc example.net 25", "command_pattern_match_mode": "token"})
+	assert_false(blocked["ok"])
+}
+
 test "run_suite threads suite-level allowed_commands into check execution" {
 	try {
 		write_file(".eval_allowed_commands_suite.json", "{\"name\":\"allowed-suite\",\"allowed_commands\":[\"echo\"],\"tests\":[{\"name\":\"allowed\",\"check\":\"command_succeeds\",\"params\":{\"command\":\"echo ok\"}},{\"name\":\"blocked\",\"check\":\"command_succeeds\",\"params\":{\"command\":\"ls\"}}]}")
