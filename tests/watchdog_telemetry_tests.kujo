@@ -1,0 +1,22 @@
+test_setup {
+	from src.watchdog_telemetry import watchdog_evaluation_events
+	from src.common import contains_text
+}
+
+test "Watchdog evaluation projection correlates bounded scores without evidence content" {
+	mapped := watchdog_evaluation_events({
+		"suite_name": "release-gate", "passed": 1, "failed": 1, "skipped": 0, "total": 2,
+		"test_results": [
+			{"name": "safe check", "check": "command_succeeds", "passed": true, "message": "never-export", "data": {"stdout": "never-export"}},
+			{"name": "failed check", "check": "file_contains", "passed": false, "message": "never-export", "params": {"path": "/secret"}}
+		]
+	}, {"trace_id": "0123456789abcdef0123456789abcdef", "run_id": "eval-run-1", "target_run_id": "dispatch-run-1", "parent_span_id": "0123456789abcdef"})
+	assert_true(mapped["ok"])
+	assert_equal(len(mapped["events"]), 3)
+	assert_equal(mapped["events"][0]["status"], "error")
+	assert_equal(mapped["events"][0]["attributes"]["evaluation.score"], 1)
+	assert_equal(mapped["events"][1]["attributes"]["evaluation.score"], true)
+	encoded := to_json(mapped["events"])
+	assert_false(contains_text(encoded, "never-export"))
+	assert_false(contains_text(encoded, "/secret"))
+}

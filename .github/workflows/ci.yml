@@ -105,6 +105,9 @@ jobs:
       - name: Run contract tests
         run: kujo test-run tests/contract_tests.kujo -v
 
+      - name: Run Watchdog telemetry contract tests
+        run: kujo test-run tests/watchdog_telemetry_tests.kujo -v
+
       - name: Verify artifact contract
         shell: bash
         run: |

@@ -16,6 +16,12 @@ Spec defines what should happen. Eval checks whether the work actually produced 
 
 Eval is part of Kujo’s Control layer: measurable outcomes, repeatable checks, reviewable reports, and machine-readable evidence.
 
+`src/watchdog_telemetry.kujo` projects suite/check scores and statuses into
+bounded `watchdog.native-event.v1` evaluation events. Callers supply the target
+Watchdog trace/run correlation; Eval continues to own execution and reports.
+The projection excludes check parameters, command output, paths, diffs,
+snapshots, and failure messages, so enabling it cannot expand content capture.
+
 Prioritize copyable examples over tests: examples should model the most token-efficient idioms we want agents to imitate.
 
 Exclude generated/bulk paths from the main sweep unless the task explicitly targets them; document the search exclusions you used.
