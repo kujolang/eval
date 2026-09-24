@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### FEATURE
+- Added `evaluation-result.json` using the producer-neutral
+  `kujo.evaluation-result/v1` contract, optional `--subject-context`, embedded
+  evidence references, and manifest/summary-channel discovery without changing
+  Eval pass/fail exit semantics.
+
 ### FIX
 - Made built-in command-name patterns token-aware, preventing false positives such as `concurrent` while preserving substring checks for destructive shell and path fragments.
 - Preserved per-test `skip`, `tags`, and `depends_on` directives during config validation, and stopped dependent tests from executing after a prerequisite failure.

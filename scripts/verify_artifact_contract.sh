@@ -38,16 +38,26 @@ if ! "$KUJO_BIN" run main.kujo run examples/release_gate_suite.json --output-dir
 fi
 
 SUMMARY_PATH="$CONTRACT_OUT_DIR/summary.json"
+EVALUATION_RESULT_PATH="$CONTRACT_OUT_DIR/evaluation-result.json"
 MANIFEST_PATH="$CONTRACT_OUT_DIR/artifact-manifest.json"
 CHANNEL_PATH="$CONTRACT_OUT_DIR/cli-summary.json"
 LAST_RUN_PATH="$CONTRACT_OUT_DIR/last_run.json"
 REPORT_PATH="$CONTRACT_OUT_DIR/eval-report.md"
 
-for required in "$SUMMARY_PATH" "$MANIFEST_PATH" "$CHANNEL_PATH" "$LAST_RUN_PATH" "$REPORT_PATH"; do
+for required in "$SUMMARY_PATH" "$EVALUATION_RESULT_PATH" "$MANIFEST_PATH" "$CHANNEL_PATH" "$LAST_RUN_PATH" "$REPORT_PATH"; do
 	if [ ! -f "$required" ]; then
 		fail_contract "missing expected artifact: $required"
 	fi
 done
+
+echo "[CONTRACT] validate producer-neutral evaluation result"
+grep -q '"schema":"kujo.evaluation-result/v1"' "$EVALUATION_RESULT_PATH" || fail_contract "evaluation result missing schema"
+grep -q '"verdict":"pass"' "$EVALUATION_RESULT_PATH" || fail_contract "evaluation result missing pass verdict"
+grep -q '"severity":"info"' "$EVALUATION_RESULT_PATH" || fail_contract "evaluation result missing info severity"
+grep -q '"evidence_refs"' "$EVALUATION_RESULT_PATH" || fail_contract "evaluation result missing evidence refs"
+if grep -q '"disposition"\|"action"' "$EVALUATION_RESULT_PATH"; then
+	fail_contract "evaluation result must not contain orchestration commands"
+fi
 
 echo "[CONTRACT] validate summary payload"
 grep -q '"suite_name"' "$SUMMARY_PATH" || fail_contract "summary missing suite_name"

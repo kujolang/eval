@@ -1,0 +1,50 @@
+test_setup {
+    from src.control_contracts import load_subject_context, make_evidence_ref, build_evaluation_result
+}
+
+test "evaluation result separates verdict from workflow control" {
+    results := {
+        "passed": 4,
+        "failed": 1,
+        "skipped": 2
+    }
+    subject_data := {
+        "subject": {"run_id": "run-1", "step_id": "verify", "attempt_id": "a1"},
+        "input_evidence_ids": ["ev-input"]
+    }
+    payload := build_evaluation_result(results, "missing-suite.json", subject_data, 1000, 2000, [])
+    assert_equal(payload["schema"], "kujo.evaluation-result/v1")
+    assert_equal(payload["verdict"], "fail")
+    assert_equal(payload["severity"], "error")
+    assert_equal(payload["checks"]["passed"], 4)
+    assert_equal(payload["checks"]["failed"], 1)
+    assert_equal(payload["checks"]["warned"], 0)
+    assert_equal(payload["subject"]["run_id"], "run-1")
+    assert_true(has_key(payload, "action") == 0)
+    assert_true(has_key(payload, "disposition") == 0)
+}
+
+test "subject context is optional and validated" {
+    default_result := load_subject_context("", "eval-default")
+    assert_true(default_result["ok"])
+    assert_equal(default_result["data"]["subject"]["run_id"], "eval-default")
+
+    try {
+        write_file(".eval_subject_contract.json", "{\"run_id\":\"run-custom\",\"step_id\":\"gate\",\"attempt_id\":\"a2\",\"input_evidence_ids\":[\"ev-1\"]}")
+    } except err {}
+    loaded := load_subject_context(".eval_subject_contract.json", "eval-default")
+    assert_true(loaded["ok"])
+    assert_equal(loaded["data"]["subject"]["run_id"], "run-custom")
+    assert_equal(loaded["data"]["subject"]["step_id"], "gate")
+    assert_equal(loaded["data"]["input_evidence_ids"][0], "ev-1")
+    try {delete_file(".eval_subject_contract.json")} except err {}
+}
+
+test "evidence reference hashes an existing artifact" {
+    try {write_file(".eval_evidence_contract.txt", "evidence")} except err {}
+    ref := make_evidence_ref("ev-1", "eval.report", ".eval_evidence_contract.txt", "text/plain", {"run_id": "run-1"}, "2026-09-24T14:32:15Z")
+    assert_equal(ref["schema"], "kujo.evidence-ref/v1")
+    assert_equal(ref["integrity"]["status"], "sha256")
+    assert_equal(len(ref["integrity"]["sha256"]), 64)
+    try {delete_file(".eval_evidence_contract.txt")} except err {}
+}

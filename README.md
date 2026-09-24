@@ -43,7 +43,7 @@ Eval provides:
 - **Quiet/verbose modes** — `--quiet` suppresses per-test output (CI mode); `--verbose` prints full check details.
 - **14 CLI commands** — init, run, report, compare, list-checks, snapshots, version, watch, lint, policy-explain, diff, export, verify-manifest, completion.
 - **CI-ready** — non-zero exit on failure; JSON/NDJSON output; GitHub Actions step summary; shields.io badge.
-- **Deterministic CI artifacts** — each run writes `summary.json` and `artifact-manifest.json` for machine consumers.
+- **Deterministic CI artifacts** — each run writes `summary.json`, a producer-neutral `evaluation-result.json`, and `artifact-manifest.json` for machine consumers.
 - **Machine summary channel** — run/report write `cli-summary.json` (or `--summary-channel-path`) as a stable automation handoff artifact.
 - **Artifact integrity mode** — opt into SHA-256 checksums in `artifact-manifest.json` and verify with `verify-manifest`.
 - **Parallel scale mode** — opt into `--parallel-workers` for independent file-check fast paths with deterministic ordering.
@@ -127,7 +127,7 @@ Migration mapping:
 - Preferred: `kujo run main.kujo <command>`
 - Optional compatibility check: `kujo run main.kujo --interpreter <command>`
 
-Interpreter mode can emit KUJORUN001 warning noise while still succeeding; rely on exit code plus generated artifacts (`summary.json`, `artifact-manifest.json`) for CI pass/fail decisions.
+Interpreter mode can emit KUJORUN001 warning noise while still succeeding; rely on exit code plus generated artifacts (`summary.json`, `evaluation-result.json`, `artifact-manifest.json`) for CI pass/fail decisions.
 
 ## Operational Watchdog Controls
 
@@ -454,6 +454,9 @@ Top-level optional controls for enterprise rollout:
 Run/report outputs now include:
 
 - `summary.json`: compact deterministic run summary for dashboards/status collectors
+- `evaluation-result.json`: `kujo.evaluation-result/v1` verdict, severity,
+  subject, counts, and integrity-bearing evidence references for generic policy
+  engines and orchestrators. It does not command pause, retry, or continuation.
 - `artifact-manifest.json`: deterministic file index for CI artifact discovery
 - `cli-summary.json`: stable machine handoff channel for run/report command outcomes
 
