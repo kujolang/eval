@@ -5,6 +5,7 @@ ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT_DIR"
 
 KUJO_BIN="${KUJO_BIN:-kujo}"
+EXPECTED_SUITE_COUNT="$(find tests -maxdepth 1 -type f -name '*_tests.kujo' | wc -l | tr -d ' ')"
 
 clear_runtime_outputs() {
 	find tests -maxdepth 1 -name "*.out" -type f -delete
@@ -15,7 +16,7 @@ clear_runtime_outputs
 DEFAULT_UPDATE_OUT="$($KUJO_BIN test --update --runtime vm 2>&1)"
 DEFAULT_OUT="$($KUJO_BIN test 2>&1)"
 echo "$DEFAULT_OUT"
-if ! grep -q "Passed 7/7" <<< "$DEFAULT_OUT"; then
+if ! grep -q "Passed ${EXPECTED_SUITE_COUNT}/${EXPECTED_SUITE_COUNT}" <<< "$DEFAULT_OUT"; then
 	echo "$DEFAULT_UPDATE_OUT"
 	echo "FAIL: default runtime did not report full pass set"
 	exit 1
@@ -26,7 +27,7 @@ clear_runtime_outputs
 VM_UPDATE_OUT="$($KUJO_BIN test --update --runtime vm 2>&1)"
 VM_OUT="$($KUJO_BIN test --runtime vm 2>&1)"
 echo "$VM_OUT"
-if ! grep -q "Passed 7/7" <<< "$VM_OUT"; then
+if ! grep -q "Passed ${EXPECTED_SUITE_COUNT}/${EXPECTED_SUITE_COUNT}" <<< "$VM_OUT"; then
 	echo "$VM_UPDATE_OUT"
 	echo "FAIL: vm runtime did not report full pass set"
 	exit 1
@@ -47,4 +48,4 @@ else
 fi
 
 clear_runtime_outputs
-echo "PASS: test runtime parity verified (default and vm both pass 7/7)"
+echo "PASS: test runtime parity verified (default and vm both pass ${EXPECTED_SUITE_COUNT}/${EXPECTED_SUITE_COUNT})"

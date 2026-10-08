@@ -6,7 +6,7 @@
 
 Evaluation framework for AI-native software — deterministic checks for agents, CLIs, files, snapshots, and workflow outputs.
 
-> **v1.0.0 stable release:** 27 checks, 14 CLI commands, 7 test suites.
+> **v1.0.0 stable release:** 27 checks, 14 CLI commands, 9 test suites.
 
 Eval answers the question:
 
