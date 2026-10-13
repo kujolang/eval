@@ -1,6 +1,7 @@
 # Stress test — runs 1000 simple tests to verify scalability.
 
 test_setup {
+    from tests.helpers.support import remove_test_path
 	from src.eval_core import run_suite
 	from src.common import dict_get_or
 }
@@ -30,7 +31,7 @@ test "stress: 1000 file_exists checks under 15 seconds" {
 
 	print("Stress test: 1000 tests in " + to_string(elapsed) + "ms")
 
-	try { remove_file(".eval_stress_test.json") } except err {}
+	try { remove_test_path(".eval_stress_test.json") } except err {}
 }
 
 test "stress: parallel file fastpath preserves results and improves timing" {
@@ -91,8 +92,8 @@ test "stress: parallel file fastpath preserves results and improves timing" {
 	assert_true(parallel_elapsed < serial_elapsed)
 	print("Parallel fastpath timing: serial=" + to_string(serial_elapsed) + "ms parallel=" + to_string(parallel_elapsed) + "ms")
 
-	try { remove_file(".eval_parallel_stress_test.json") } except err {}
-	try { remove_file(".eval_parallel_payload.txt") } except err {}
+	try { remove_test_path(".eval_parallel_stress_test.json") } except err {}
+	try { remove_test_path(".eval_parallel_payload.txt") } except err {}
 }
 
 test "stress: parallel file fastpath supports line-count glob and regex checks" {
@@ -147,8 +148,8 @@ test "stress: parallel file fastpath supports line-count glob and regex checks" 
 	assert_equal(dict_get_or(parallel_data, "parallel_mode", ""), "file-fastpath")
 	assert_true(dict_get_or(parallel_data, "cache_metric_hits", 0) > 0)
 
-	try { remove_file(".eval_parallel_extended_stress_test.json") } except err {}
-	try { remove_file(".eval_parallel_extended_payload.txt") } except err {}
+	try { remove_test_path(".eval_parallel_extended_stress_test.json") } except err {}
+	try { remove_test_path(".eval_parallel_extended_payload.txt") } except err {}
 }
 
 test "stress: large mixed fixture has stable accounting" {

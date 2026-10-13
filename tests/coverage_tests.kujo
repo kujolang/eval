@@ -4,6 +4,7 @@
 # Organized by module/feature for clarity.
 
 test_setup {
+    from tests.helpers.support import remove_test_path
 	from src.checks import run_shell, check_command_succeeds, check_command_fails
 	from src.checks import check_file_exists, check_file_does_not_exist
 	from src.checks import check_file_contains, check_file_does_not_contain
@@ -93,14 +94,14 @@ test "file_size_less_than passes for small file" {
 	try { write_file(".eval_small.txt", "hi") } except err {}
 	result := check_file_size_less_than({"path": ".eval_small.txt", "bytes": 1000})
 	assert_true(result["ok"])
-	try { remove_file(".eval_small.txt") } except err {}
+	try { remove_test_path(".eval_small.txt") } except err {}
 }
 
 test "file_size_less_than fails for too-large file" {
 	try { write_file(".eval_big.txt", "hello world this is a test file with content") } except err {}
 	result := check_file_size_less_than({"path": ".eval_big.txt", "bytes": 2})
 	assert_false(result["ok"])
-	try { remove_file(".eval_big.txt") } except err {}
+	try { remove_test_path(".eval_big.txt") } except err {}
 }
 
 # ===========================================================================
@@ -201,7 +202,7 @@ test "save_report with html format writes .html file" {
 	assert_true(result["ok"])
 	path_val := dict_get_or(dict_get_or(result, "data", {}), "path", "")
 	assert_true(contains(path_val, ".html") == true)
-	try { remove_file(path_val); remove_file(".eval_cov_output") } except err {}
+	try { remove_test_path(path_val); remove_test_path(".eval_cov_output") } except err {}
 }
 
 # ===========================================================================
@@ -214,14 +215,14 @@ test "snapshot diff includes actual vs expected content" {
 	data := dict_get_or(result, "data", {})
 	assert_false(result["ok"])
 	assert_true(len(dict_get_or(data, "diff", "")) > 0)
-	try { remove_file("./snapshots/diff-test.snap") } except err {}
+	try { remove_test_path("./snapshots/diff-test.snap") } except err {}
 }
 
 test "snapshot with special characters in name is sanitized" {
 	save_snapshot("./snapshots", "test/with../bad.chars!", "content")
 	result := compare_snapshot("./snapshots", "test/with../bad.chars!", "content")
 	assert_true(result["ok"])
-	try { remove_file("./snapshots/test_with___bad.chars!.snap") } except err {}
+	try { remove_test_path("./snapshots/test_with___bad.chars!.snap") } except err {}
 }
 
 test "snapshot handles multi-line content with trailing newline" {
@@ -229,21 +230,21 @@ test "snapshot handles multi-line content with trailing newline" {
 	save_snapshot("./snapshots", "multiline-trail", content)
 	result := compare_snapshot("./snapshots", "multiline-trail", content)
 	assert_true(result["ok"])
-	try { remove_file("./snapshots/multiline-trail.snap") } except err {}
+	try { remove_test_path("./snapshots/multiline-trail.snap") } except err {}
 }
 
 test "snapshot handles empty content" {
 	save_snapshot("./snapshots", "empty-snap", "")
 	result := compare_snapshot("./snapshots", "empty-snap", "")
 	assert_true(result["ok"])
-	try { remove_file("./snapshots/empty-snap.snap") } except err {}
+	try { remove_test_path("./snapshots/empty-snap.snap") } except err {}
 }
 
 test "check_snapshot_matches with command param runs command for content" {
 	try { save_snapshot("./snapshots", "cmd-snap", "hello") } except err {}
 	result := check_snapshot_matches({"name": "cmd-snap", "command": "echo hello", "snapshot_dir": "./snapshots"})
 	assert_true(result["ok"])
-	try { remove_file("./snapshots/cmd-snap.snap") } except err {}
+	try { remove_test_path("./snapshots/cmd-snap.snap") } except err {}
 }
 
 # ===========================================================================
@@ -258,7 +259,7 @@ test "run_suite executes before_each hook before each test" {
 	data := dict_get_or(results, "data", {})
 	assert_true(results["ok"])
 	assert_equal(dict_get_or(data, "total", 0), 2)
-	try { remove_file(".eval_hook_test.json") } except err {}
+	try { remove_test_path(".eval_hook_test.json") } except err {}
 }
 
 test "run_suite executes teardown hook after all tests" {
@@ -267,7 +268,7 @@ test "run_suite executes teardown hook after all tests" {
 	} except err {}
 	results := run_suite(".eval_teardown_test.json", {"quiet": true})
 	assert_true(results["ok"])
-	try { remove_file(".eval_teardown_test.json") } except err {}
+	try { remove_test_path(".eval_teardown_test.json") } except err {}
 }
 
 test "run_suite executes setup hook before any tests" {
@@ -276,7 +277,7 @@ test "run_suite executes setup hook before any tests" {
 	} except err {}
 	results := run_suite(".eval_setup_test.json", {"quiet": true})
 	assert_true(results["ok"])
-	try { remove_file(".eval_setup_test.json") } except err {}
+	try { remove_test_path(".eval_setup_test.json") } except err {}
 }
 
 # ===========================================================================
@@ -290,7 +291,7 @@ test "filter with pattern that matches no tests returns zero results" {
 	results := run_suite(".eval_filter_none.json", {"filter": "zzz_nonexistent", "quiet": true})
 	data := dict_get_or(results, "data", {})
 	assert_equal(dict_get_or(data, "skipped", 0), 1)
-	try { remove_file(".eval_filter_none.json") } except err {}
+	try { remove_test_path(".eval_filter_none.json") } except err {}
 }
 
 test "tag filtering with multiple tags runs matching tests" {
@@ -301,7 +302,7 @@ test "tag filtering with multiple tags runs matching tests" {
 	data := dict_get_or(results, "data", {})
 	assert_equal(dict_get_or(data, "passed", 0), 1)
 	assert_equal(dict_get_or(data, "skipped", 0), 1)
-	try { remove_file(".eval_tags_test.json") } except err {}
+	try { remove_test_path(".eval_tags_test.json") } except err {}
 }
 
 test "skip-tags excludes matching tests" {
@@ -312,7 +313,7 @@ test "skip-tags excludes matching tests" {
 	data := dict_get_or(results, "data", {})
 	assert_equal(dict_get_or(data, "passed", 0), 1)
 	assert_equal(dict_get_or(data, "skipped", 0), 1)
-	try { remove_file(".eval_skiptags_test.json") } except err {}
+	try { remove_test_path(".eval_skiptags_test.json") } except err {}
 }
 
 test "exclude pattern skips matching tests" {
@@ -322,7 +323,7 @@ test "exclude pattern skips matching tests" {
 	results := run_suite(".eval_exclude_test.json", {"exclude": "skip-me", "quiet": true})
 	data := dict_get_or(results, "data", {})
 	assert_equal(dict_get_or(data, "passed", 0), 1)
-	try { remove_file(".eval_exclude_test.json") } except err {}
+	try { remove_test_path(".eval_exclude_test.json") } except err {}
 }
 
 # ===========================================================================
@@ -385,7 +386,7 @@ test "load_config with valid config returns parsed config in data" {
 	assert_true(result["ok"])
 	data := dict_get_or(result, "data", {})
 	assert_true(type(dict_get_or(data, "config", {})) == "dict")
-	try { remove_file(".eval_valid_test.json") } except err {}
+	try { remove_test_path(".eval_valid_test.json") } except err {}
 }
 
 # ===========================================================================
@@ -514,21 +515,21 @@ test "file_contains with Unicode emoji" {
 	try { write_file(".eval_emoji_test.txt", "hello 🌍 world 🚀 test") } except err {}
 	result := check_file_contains({"path": ".eval_emoji_test.txt", "expected": "🌍"})
 	assert_true(result["ok"])
-	try { remove_file(".eval_emoji_test.txt") } except err {}
+	try { remove_test_path(".eval_emoji_test.txt") } except err {}
 }
 
 test "file_does_not_contain with Unicode content" {
 	try { write_file(".eval_unicode_test.txt", "café résumé naïve") } except err {}
 	result := check_file_does_not_contain({"path": ".eval_unicode_test.txt", "expected": "pizza"})
 	assert_true(result["ok"])
-	try { remove_file(".eval_unicode_test.txt") } except err {}
+	try { remove_test_path(".eval_unicode_test.txt") } except err {}
 }
 
 test "file_does_not_contain fails when text is present" {
 	try { write_file(".eval_has_text.txt", "secret token here") } except err {}
 	result := check_file_does_not_contain({"path": ".eval_has_text.txt", "expected": "token"})
 	assert_false(result["ok"])
-	try { remove_file(".eval_has_text.txt") } except err {}
+	try { remove_test_path(".eval_has_text.txt") } except err {}
 }
 
 # ===========================================================================
@@ -543,7 +544,7 @@ test "run_suite with stop_on_failure halts after first failure" {
 	data := dict_get_or(results, "data", {})
 	assert_equal(dict_get_or(data, "failed", 0), 1)
 	assert_equal(dict_get_or(data, "total", 0), 1)
-	try { remove_file(".eval_stop_test.json") } except err {}
+	try { remove_test_path(".eval_stop_test.json") } except err {}
 }
 
 test "run_suite applies per-test timeout_seconds override" {
@@ -559,7 +560,7 @@ test "run_suite applies per-test timeout_seconds override" {
 		first := trs[0]
 		assert_true(contains(normalize_string(dict_get_or(first, "message", ""), ""), "timed out") == true)
 	}
-	try { remove_file(".eval_test_timeout_override.json") } except err {}
+	try { remove_test_path(".eval_test_timeout_override.json") } except err {}
 }
 
 # ===========================================================================
@@ -576,25 +577,25 @@ test "describe_common_module lists correct exports" {
 	assert_true(len(exports) >= 6)
 }
 
-test "main describe_module lists all 7 commands" {
-	from main import describe_module
+test "core describe_module lists all 14 commands" {
+	from src.eval_core import describe_module
 	desc := describe_module()
 	cmds := desc["commands"]
-	assert_equal(len(cmds), 7)
+	assert_equal(len(cmds), 14)
 	assert_true(contains(cmds[0], "init") == true || contains(cmds[1], "init") == true || contains(cmds[2], "init") == true)
 }
 
-test "main describe_module reports correct check count" {
-	from main import describe_module
+test "core describe_module reports correct check count" {
+	from src.eval_core import describe_module
 	desc := describe_module()
 	assert_true(dict_get_or(desc, "check_count", 0) >= 27)
 }
 
-test "main describe_module lists all 4 report formats" {
-	from main import describe_module
+test "core describe_module lists all 5 report formats" {
+	from src.eval_core import describe_module
 	desc := describe_module()
 	formats := desc["report_formats"]
-	assert_equal(len(formats), 4)
+	assert_equal(len(formats), 5)
 }
 
 # ===========================================================================
@@ -605,14 +606,14 @@ test "check_file_matches_regex handles multi-line content" {
 	try { write_file(".eval_regex_ml.txt", "line1\nline2\n123\nline4") } except err {}
 	result := check_file_matches_regex({"path": ".eval_regex_ml.txt", "pattern": "[0-9]+"})
 	assert_true(result["ok"])
-	try { remove_file(".eval_regex_ml.txt") } except err {}
+	try { remove_test_path(".eval_regex_ml.txt") } except err {}
 }
 
 test "check_file_matches_regex accepts cached_file_content" {
 	try { write_file(".eval_regex_cache.txt", "abc") } except err {}
 	result := check_file_matches_regex({"path": ".eval_regex_cache.txt", "pattern": "XYZ", "cached_file_content": "XYZ"})
 	assert_true(result["ok"])
-	try { remove_file(".eval_regex_cache.txt") } except err {}
+	try { remove_test_path(".eval_regex_cache.txt") } except err {}
 }
 
 test "check_command_timing_less_than records timing data" {
@@ -640,21 +641,21 @@ test "check_file_line_count supports less_than comparison" {
 	try { write_file(".eval_lt_test.txt", "a\nb\n") } except err {}
 	result := check_file_line_count({"path": ".eval_lt_test.txt", "expected": 10, "comparison": "less_than"})
 	assert_true(result["ok"])
-	try { remove_file(".eval_lt_test.txt") } except err {}
+	try { remove_test_path(".eval_lt_test.txt") } except err {}
 }
 
 test "check_file_line_count accepts cached_file_content" {
 	try { write_file(".eval_line_cache.txt", "a") } except err {}
 	result := check_file_line_count({"path": ".eval_line_cache.txt", "expected": 3, "comparison": "equals", "cached_file_content": "a\nb\nc"})
 	assert_true(result["ok"])
-	try { remove_file(".eval_line_cache.txt") } except err {}
+	try { remove_test_path(".eval_line_cache.txt") } except err {}
 }
 
 test "check_file_line_count rejects unknown comparison" {
 	try { write_file(".eval_badcmp.txt", "a\n") } except err {}
 	result := check_file_line_count({"path": ".eval_badcmp.txt", "expected": 1, "comparison": "invalid_op"})
 	assert_false(result["ok"])
-	try { remove_file(".eval_badcmp.txt") } except err {}
+	try { remove_test_path(".eval_badcmp.txt") } except err {}
 }
 
 # ===========================================================================
@@ -750,7 +751,7 @@ test "check_json_value_equals rejects invalid JSON" {
 	try { write_file(".eval_badjson.txt", "not valid json {{{") } except err {}
 	result := check_json_value_equals({"path": ".eval_badjson.txt", "json_path": "key", "expected": "val"})
 	assert_false(result["ok"])
-	try { remove_file(".eval_badjson.txt") } except err {}
+	try { remove_test_path(".eval_badjson.txt") } except err {}
 }
 
 test "json_value_equals resolves nested array path with type assertion" {
@@ -762,7 +763,7 @@ test "json_value_equals resolves nested array path with type assertion" {
 		"expected_type": "string"
 	})
 	assert_true(result["ok"])
-	try { remove_file(".eval_json_array_path.json") } except err {}
+	try { remove_test_path(".eval_json_array_path.json") } except err {}
 }
 
 test "json_value_equals accepts cached_file_content" {
@@ -774,7 +775,7 @@ test "json_value_equals accepts cached_file_content" {
 		"cached_file_content": "{\"payload\":{\"count\":2}}"
 	})
 	assert_true(result["ok"])
-	try { remove_file(".eval_json_cache_path.json") } except err {}
+	try { remove_test_path(".eval_json_cache_path.json") } except err {}
 }
 
 test "json_value_equals fails when expected_type does not match" {
@@ -864,7 +865,7 @@ test "run_suite applies release-deny-default path policy profile" {
 	assert_true(result["ok"])
 	assert_equal(dict_get_or(data, "failed", 0), 1)
 
-	try { remove_file(".eval_path_profile_release.json") } except err {}
+	try { remove_test_path(".eval_path_profile_release.json") } except err {}
 }
 
 test "lint_config_file rejects unknown path policy profile" {
@@ -883,7 +884,7 @@ test "lint_config_file rejects unknown path policy profile" {
 		i = i + 1
 	}
 	assert_true(found)
-	try { remove_file(".eval_bad_path_profile.json") } except err {}
+	try { remove_test_path(".eval_bad_path_profile.json") } except err {}
 }
 
 test "validate_config rejects unknown stage path policy profile" {
@@ -976,12 +977,12 @@ test "run_suite emits non-empty messages for normalized legacy checks" {
 	}
 
 	try {
-		remove_file(".eval_cov_legacy_suite.json")
-		remove_file(".eval_cov_shape.json")
-		remove_file(".eval_cov_dir_a/f.txt")
-		remove_file(".eval_cov_dir_b/f.txt")
-		remove_file(".eval_cov_dir_a")
-		remove_file(".eval_cov_dir_b")
+		remove_test_path(".eval_cov_legacy_suite.json")
+		remove_test_path(".eval_cov_shape.json")
+		remove_test_path(".eval_cov_dir_a/f.txt")
+		remove_test_path(".eval_cov_dir_b/f.txt")
+		remove_test_path(".eval_cov_dir_a")
+		remove_test_path(".eval_cov_dir_b")
 	} except err {}
 }
 
@@ -997,7 +998,7 @@ test "lint_config_file emits code and suggested fix for invalid check" {
 	assert_true(type(first_diag) == "dict")
 	assert_true(len(dict_get_or(first_diag, "code", "")) > 0)
 	assert_true(len(dict_get_or(first_diag, "suggested_fix", "")) > 0)
-	try { remove_file(".eval_lint_invalid_check.json") } except err {}
+	try { remove_test_path(".eval_lint_invalid_check.json") } except err {}
 }
 
 test "file_size_greater_than rejects missing file" {

@@ -4,6 +4,7 @@
 # output redaction, and config abuse protections.
 
 test_setup {
+    from tests.helpers.support import remove_test_path
 	from src.checks import run_shell, check_command_succeeds, check_file_exists, check_file_contains, check_env_var_equals
 	from src.checks import check_output_contains, check_command_stdout_json_path_equals, check_two_files_equal, check_directory_diff
 	from src.checks import check_http_status, check_http_body_contains
@@ -155,7 +156,7 @@ test "run_suite threads suite-level allowed_commands into check execution" {
 	assert_equal(dict_get_or(data, "passed", 0), 1)
 	assert_equal(dict_get_or(data, "failed", 0), 1)
 
-	try { remove_file(".eval_allowed_commands_suite.json") } except err {}
+	try { remove_test_path(".eval_allowed_commands_suite.json") } except err {}
 }
 
 test "run_suite threads suite-level command pattern policies into check execution" {
@@ -170,7 +171,7 @@ test "run_suite threads suite-level command pattern policies into check executio
 	assert_equal(dict_get_or(data, "passed", 0), 1)
 	assert_equal(dict_get_or(data, "failed", 0), 2)
 
-	try { remove_file(".eval_command_patterns_suite.json") } except err {}
+	try { remove_test_path(".eval_command_patterns_suite.json") } except err {}
 }
 
 test "validate_config applies strict-ci policy profile defaults" {
@@ -202,7 +203,7 @@ test "run_suite enforces strict-ci policy profile command defaults" {
 	assert_equal(dict_get_or(data, "passed", 0), 1)
 	assert_equal(dict_get_or(data, "failed", 0), 1)
 
-	try { remove_file(".eval_policy_profile_suite.json") } except err {}
+	try { remove_test_path(".eval_policy_profile_suite.json") } except err {}
 }
 
 test "validate_config normalizes policy_stage_overlays" {
@@ -246,7 +247,7 @@ test "run_suite applies policy_stage overlay precedence" {
 	assert_equal(dict_get_or(ci_data, "failed", 0), 1)
 	assert_equal(dict_get_or(ci_data, "active_policy_stage", ""), "ci")
 
-	try { remove_file(".eval_policy_stage_suite.json") } except err {}
+	try { remove_test_path(".eval_policy_stage_suite.json") } except err {}
 }
 
 test "check_http_status enforces blocked_http_hosts denylist" {
@@ -300,7 +301,7 @@ test "run_suite threads suite-level blocked_http_hosts into HTTP checks" {
 		assert_true(contains(msg, "blocked") == 1)
 	}
 
-	try { remove_file(".eval_http_host_policy_suite.json") } except err {}
+	try { remove_test_path(".eval_http_host_policy_suite.json") } except err {}
 }
 
 test "validate_config normalizes require_command_policy controls" {
@@ -335,7 +336,7 @@ test "run_suite strict command mode fails closed in ci stage without allowlist" 
 	assert_false(result["ok"])
 	assert_true(contains(dict_get_or(result, "error", ""), "Strict command policy") == 1)
 
-	try { remove_file(".eval_strict_command_policy_fail.json") } except err {}
+	try { remove_test_path(".eval_strict_command_policy_fail.json") } except err {}
 }
 
 test "run_suite strict command mode allows ci stage when allowlist is present" {
@@ -348,7 +349,7 @@ test "run_suite strict command mode allows ci stage when allowlist is present" {
 	assert_true(result["ok"])
 	assert_equal(dict_get_or(data, "passed", 0), 1)
 
-	try { remove_file(".eval_strict_command_policy_pass.json") } except err {}
+	try { remove_test_path(".eval_strict_command_policy_pass.json") } except err {}
 }
 
 test "run_suite threads suite-level command_pattern_match_mode into check execution" {
@@ -363,7 +364,7 @@ test "run_suite threads suite-level command_pattern_match_mode into check execut
 	assert_equal(dict_get_or(data, "passed", 0), 1)
 	assert_equal(dict_get_or(data, "failed", 0), 1)
 
-	try { remove_file(".eval_command_pattern_mode_suite.json") } except err {}
+	try { remove_test_path(".eval_command_pattern_mode_suite.json") } except err {}
 }
 
 test "run_suite applies suite timeout_seconds to output checks" {
@@ -384,7 +385,7 @@ test "run_suite applies suite timeout_seconds to output checks" {
 	assert_equal(dict_get_or(data, "failed", 0), 1)
 	assert_true(contains(message, "timed out") == 1)
 
-	try { remove_file(".eval_suite_timeout_output.json") } except err {}
+	try { remove_test_path(".eval_suite_timeout_output.json") } except err {}
 }
 
 # ===========================================================================
@@ -420,7 +421,7 @@ test "check_file_contains allows safe file read" {
 	result := check_file_contains({"path": ".eval_sec_test.txt", "expected": "safe"})
 	assert_true(result["ok"])
 	try {
-		remove_file(".eval_sec_test.txt")
+		remove_test_path(".eval_sec_test.txt")
 	} except err {}
 }
 
@@ -437,15 +438,15 @@ test "check_file_exists enforces allowed_paths allowlist" {
 	assert_false(blocked["ok"])
 
 	try {
-		remove_file(".eval_allowed_paths/ok.txt")
-		remove_file(".eval_allowed_paths")
+		remove_test_path(".eval_allowed_paths/ok.txt")
+		remove_test_path(".eval_allowed_paths")
 	} except err {}
 }
 
 test "check_file_exists rejects symlink escape outside allowed_paths" {
 	try {
 		create_dir(".eval_symlink_allowed")
-		remove_file(".eval_symlink_allowed/link_outside")
+		remove_test_path(".eval_symlink_allowed/link_outside")
 	} except err {}
 
 	link_cmd := run_shell("ln -s ../README.md .eval_symlink_allowed/link_outside")
@@ -457,15 +458,15 @@ test "check_file_exists rejects symlink escape outside allowed_paths" {
 	assert_true(contains(msg, "symlink") == 1 || contains(msg, "outside") == 1 || contains(msg, "allowed") == 1)
 
 	try {
-		remove_file(".eval_symlink_allowed/link_outside")
-		remove_file(".eval_symlink_allowed")
+		remove_test_path(".eval_symlink_allowed/link_outside")
+		remove_test_path(".eval_symlink_allowed")
 	} except err {}
 }
 
 test "check_file_contains rejects symlink escape outside allowed_paths" {
 	try {
 		create_dir(".eval_symlink_content")
-		remove_file(".eval_symlink_content/link_outside")
+		remove_test_path(".eval_symlink_content/link_outside")
 	} except err {}
 
 	link_cmd := run_shell("ln -s ../README.md .eval_symlink_content/link_outside")
@@ -477,8 +478,8 @@ test "check_file_contains rejects symlink escape outside allowed_paths" {
 	assert_true(contains(msg, "symlink") == 1 || contains(msg, "outside") == 1 || contains(msg, "allowed") == 1)
 
 	try {
-		remove_file(".eval_symlink_content/link_outside")
-		remove_file(".eval_symlink_content")
+		remove_test_path(".eval_symlink_content/link_outside")
+		remove_test_path(".eval_symlink_content")
 	} except err {}
 }
 
@@ -492,8 +493,8 @@ test "check_file_exists normalizes candidate and allowed paths before allowlist 
 	assert_true(allowed["ok"])
 
 	try {
-		remove_file(".eval_allowed_paths_norm/ok.txt")
-		remove_file(".eval_allowed_paths_norm")
+		remove_test_path(".eval_allowed_paths_norm/ok.txt")
+		remove_test_path(".eval_allowed_paths_norm")
 	} except err {}
 }
 
@@ -524,9 +525,9 @@ test "run_suite threads suite-level allowed_paths into file checks" {
 	assert_equal(dict_get_or(data, "failed", 0), 1)
 
 	try {
-		remove_file(".eval_allowed_paths_suite/ok.txt")
-		remove_file(".eval_allowed_paths_suite")
-		remove_file(".eval_allowed_paths_suite.json")
+		remove_test_path(".eval_allowed_paths_suite/ok.txt")
+		remove_test_path(".eval_allowed_paths_suite")
+		remove_test_path(".eval_allowed_paths_suite.json")
 	} except err {}
 }
 
@@ -564,7 +565,7 @@ test "run_suite release stage uses deny by default path profile" {
 	assert_true(release_result["ok"])
 	assert_equal(dict_get_or(release_data, "failed", 0), 1)
 
-	try { remove_file(".eval_release_path_profile_suite.json") } except err {}
+	try { remove_test_path(".eval_release_path_profile_suite.json") } except err {}
 }
 
 test "run_suite stage path profile overlay takes precedence over top level allowlist" {
@@ -582,7 +583,7 @@ test "run_suite stage path profile overlay takes precedence over top level allow
 	assert_true(ci_result["ok"])
 	assert_equal(dict_get_or(ci_data, "passed", 0), 1)
 
-	try { remove_file(".eval_stage_path_precedence_suite.json") } except err {}
+	try { remove_test_path(".eval_stage_path_precedence_suite.json") } except err {}
 }
 
 test "run_suite appends output and snapshot dirs to non-empty suite allowlist at runtime" {
@@ -599,9 +600,9 @@ test "run_suite appends output and snapshot dirs to non-empty suite allowlist at
 	assert_equal(dict_get_or(data, "passed", 0), 1)
 
 	try {
-		remove_file(".eval_runtime_paths/ok.txt")
-		remove_file(".eval_runtime_paths")
-		remove_file(".eval_runtime_paths_suite.json")
+		remove_test_path(".eval_runtime_paths/ok.txt")
+		remove_test_path(".eval_runtime_paths")
+		remove_test_path(".eval_runtime_paths_suite.json")
 	} except err {}
 }
 
@@ -628,7 +629,7 @@ test "run_suite threads suite-level allowed_env_vars into env checks" {
 	assert_equal(dict_get_or(data, "passed", 0), 1)
 	assert_equal(dict_get_or(data, "failed", 0), 1)
 
-	try { remove_file(".eval_allowed_env_suite.json") } except err {}
+	try { remove_test_path(".eval_allowed_env_suite.json") } except err {}
 }
 
 test "check_json_matches_shape rejects system path" {
@@ -774,7 +775,7 @@ test "run_suite threads suite-level redaction_audit_mode into command checks" {
 	details := dict_get_or(first, "details", {})
 	assert_true(has_key(details, "redaction_hits") == 1)
 
-	try { remove_file(".eval_redaction_audit_suite.json") } except err {}
+	try { remove_test_path(".eval_redaction_audit_suite.json") } except err {}
 }
 
 test "check_output_contains redacts organization specific custom patterns" {
@@ -813,7 +814,7 @@ test "run_suite threads suite level custom redaction patterns into command check
 	assert_true(contains(stdout_val, "REDACTED") == 1)
 	assert_true(dict_get_or(details, "redaction_hits", 0) > 0)
 
-	try { remove_file(".eval_custom_redaction_suite.json") } except err {}
+	try { remove_test_path(".eval_custom_redaction_suite.json") } except err {}
 }
 
 test "run_shell redacts bearer token pattern in stdout" {
@@ -847,8 +848,8 @@ test "two_files_equal enforces allowed_paths policy" {
 	assert_false(result["ok"])
 
 	try {
-		remove_file(".eval_sec_two_a.txt")
-		remove_file(".eval_sec_two_b.txt")
+		remove_test_path(".eval_sec_two_a.txt")
+		remove_test_path(".eval_sec_two_b.txt")
 	} except err {}
 }
 
@@ -862,7 +863,7 @@ test "directory_diff enforces allowed_paths policy" {
 	assert_false(result["ok"])
 
 	try {
-		remove_file(".eval_sec_dir_a")
-		remove_file(".eval_sec_dir_b")
+		remove_test_path(".eval_sec_dir_a")
+		remove_test_path(".eval_sec_dir_b")
 	} except err {}
 }

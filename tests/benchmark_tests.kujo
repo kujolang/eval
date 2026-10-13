@@ -11,6 +11,7 @@
 # detecting order-of-magnitude regressions.
 
 test_setup {
+    from tests.helpers.support import remove_test_path
 	from src.checks import check_file_exists, check_command_succeeds, check_output_contains
 	from src.checks import check_file_contains, check_json_matches_shape
 	from src.checks import run_check
@@ -34,7 +35,7 @@ test_setup {
 		tmp_path := path + ".tmp"
 		bak_path := path + ".bak"
 
-		try { remove_file(tmp_path) } except err {}
+		try { remove_test_path(tmp_path) } except err {}
 		write_file(tmp_path, content)
 
 		if path_exists(path) {
@@ -42,7 +43,7 @@ test_setup {
 		}
 
 		rename_file(tmp_path, path)
-		try { remove_file(bak_path) } except err {}
+		try { remove_test_path(bak_path) } except err {}
 	}
 
 	func record_benchmark(metric_name, duration_ms, iterations, threshold_ms) {
@@ -89,15 +90,15 @@ test_setup {
 	}
 
 	func cleanup_output_dir(path) {
-		try { remove_file(path + "/eval-report.md") } except err {}
-		try { remove_file(path + "/last_run.json") } except err {}
-		try { remove_file(path + "/history.json") } except err {}
-		try { remove_file(path + "/badge.json") } except err {}
-		try { remove_file(path + "/last_failures.json") } except err {}
-		try { remove_file(path + "/summary.json") } except err {}
-		try { remove_file(path + "/cli-summary.json") } except err {}
-		try { remove_file(path + "/artifact-manifest.json") } except err {}
-		try { remove_file(path) } except err {}
+		try { remove_test_path(path + "/eval-report.md") } except err {}
+		try { remove_test_path(path + "/last_run.json") } except err {}
+		try { remove_test_path(path + "/history.json") } except err {}
+		try { remove_test_path(path + "/badge.json") } except err {}
+		try { remove_test_path(path + "/last_failures.json") } except err {}
+		try { remove_test_path(path + "/summary.json") } except err {}
+		try { remove_test_path(path + "/cli-summary.json") } except err {}
+		try { remove_test_path(path + "/artifact-manifest.json") } except err {}
+		try { remove_test_path(path) } except err {}
 	}
 
 	func run_suite_bench(config_path, output_dir) {
@@ -160,7 +161,7 @@ test "bench: file_contains on small file under 100ms for 10 iterations" {
 	print("file_contains x10: " + to_string(total) + "ms")
 	record_benchmark("file_contains_small_x10", total, 10, 400)
 	assert_true(total < 400)
-	try { remove_file(".eval_bench_small.txt") } except err {}
+	try { remove_test_path(".eval_bench_small.txt") } except err {}
 }
 
 # ===========================================================================
@@ -173,7 +174,7 @@ test "bench: json_matches_shape under 100ms for 10 iterations" {
 	print("json_matches_shape x10: " + to_string(total) + "ms")
 	record_benchmark("json_matches_shape_x10", total, 10, 400)
 	assert_true(total < 400)
-	try { remove_file(".eval_bench_json.json") } except err {}
+	try { remove_test_path(".eval_bench_json.json") } except err {}
 }
 
 # ===========================================================================
@@ -300,6 +301,6 @@ test "bench: cache metrics are emitted and monotonic for repeated paths" {
 	assert_true(hits + misses <= candidates)
 	assert_true(bytes_reused > 0)
 
-	try { remove_file(".eval_cache_metric_suite.json") } except err {}
-	try { remove_file(".eval_cache_metric_payload.txt") } except err {}
+	try { remove_test_path(".eval_cache_metric_suite.json") } except err {}
+	try { remove_test_path(".eval_cache_metric_payload.txt") } except err {}
 }
