@@ -50,6 +50,9 @@ for required in "$SUMMARY_PATH" "$EVALUATION_RESULT_PATH" "$MANIFEST_PATH" "$CHA
 	fi
 done
 
+echo "[CONTRACT] verify the release-gate size threshold actually ran"
+grep -q '"threshold":100' "$LAST_RUN_PATH" || fail_contract "release gate did not evaluate its configured 100-byte threshold"
+
 echo "[CONTRACT] validate producer-neutral evaluation result"
 grep -q '"schema":"kujo.evaluation-result/v1"' "$EVALUATION_RESULT_PATH" || fail_contract "evaluation result missing schema"
 grep -q '"verdict":"pass"' "$EVALUATION_RESULT_PATH" || fail_contract "evaluation result missing pass verdict"

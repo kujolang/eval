@@ -9,6 +9,7 @@
   Eval pass/fail exit semantics.
 
 ### FIX
+- Corrected the release-gate example to use the file-size check's `bytes` parameter; the artifact contract now verifies its 100-byte threshold instead of silently accepting the zero default.
 - Made built-in command-name patterns token-aware, preventing false positives such as `concurrent` while preserving substring checks for destructive shell and path fragments.
 - Preserved per-test `skip`, `tags`, and `depends_on` directives during config validation, and stopped dependent tests from executing after a prerequisite failure.
 - Preserved the documented `setup`, `teardown`, `before_each`, and `after_each` suite hooks during config validation.
