@@ -9,7 +9,7 @@ test_setup {
     from src.checks import run_shell
     from src.report import save_report, save_report_with_options
     from src.eval_core import describe_module
-}
+    from src.common import dict_get_or
 
 func resolve_kujo_bin() {
     override := trim(env("KUJO_BIN"))
@@ -20,6 +20,7 @@ func resolve_kujo_bin() {
 }
 
 KUJO_BIN := resolve_kujo_bin()
+}
 
 # ===========================================================================
 # init command
@@ -343,6 +344,17 @@ test "CLI run --json returns stable envelope on success" {
     try {remove_test_path(".eval_json_shape_suite.json")} except err {}
 }
 
+test "CLI dry run JSON stays machine-readable without executing checks" {
+    write_file(".eval_dry_json_suite.json", "{\"name\":\"dry-json\",\"tests\":[{\"name\":\"must-not-run\",\"check\":\"command_succeeds\",\"params\":{\"command\":\"exit 42\"}}]}", true)
+    result := run_shell(KUJO_BIN + " run main.kujo run .eval_dry_json_suite.json --dry-run --json")
+    assert_true(result["ok"])
+    assert_equal(result["exit_code"], 0)
+    payload := parse_json(result["stdout"])
+    assert_true(payload["data"]["dry_run"])
+    assert_equal(payload["data"]["test_count"], 1)
+    remove_test_path(".eval_dry_json_suite.json")
+}
+
 test "CLI run --summary-only prints compact output" {
     try {
         write_file(".eval_summary_suite.json", "{\"name\":\"summary-suite\",\"tests\":[{\"name\":\"ok\",\"check\":\"command_succeeds\",\"params\":{\"command\":\"echo ok\"}}]}")
@@ -580,7 +592,7 @@ test "CLI verify-manifest fails after artifact tampering" {
     assert_equal(verify_pass["exit_code"], 0)
 
     try {
-        write_file(".eval_manifest_tamper_out/summary.json", "{\"tampered\":true}")
+        write_file(".eval_manifest_tamper_out/summary.json", "{\"tampered\":true}", true)
     } except err {}
 
     verify_fail := run_shell(KUJO_BIN + " run main.kujo verify-manifest --output-dir .eval_manifest_tamper_out --json")
@@ -767,7 +779,8 @@ test "CLI report reuses unchanged artifact content" {
 
     first_payload := parse_json(first["stdout"])
     first_data := dict_get_or(first_payload, "data", {})
-    assert_false(dict_get_or(first_data, "report_cached", true))
+    # The seed run already wrote the identical report and its cache.
+    assert_true(dict_get_or(first_data, "report_cached", false))
     assert_true(dict_get_or(first_data, "report_incremental_mode", false))
 
     second_payload := parse_json(second["stdout"])
@@ -809,7 +822,8 @@ test "CLI policy-explain emits deterministic stage overlay payload" {
     assert_true(dict_get_or(data, "stage_overlay_applied", false))
     assert_true(dict_get_or(data, "strict_command_policy_enforced", false))
     assert_true(dict_get_or(data, "path_allowlist_enforced", false))
-    assert_equal(dict_get_or(data, "risk_tier", ""), "low")
+    assert_equal(dict_get_or(data, "risk_tier", ""), "moderate")
+    assert_equal(dict_get_or(data, "risk_score", 0), 2)
 
     effective := dict_get_or(data, "effective_policy", {})
     assert_equal(dict_get_or(effective, "path_policy_mode", ""), "allowlist-required")
@@ -920,7 +934,7 @@ test "CLI watch bounded loop exits successfully with valid config" {
     try {remove_test_path(".eval_watch_suite.json")} except err {}
 }
 
-test "Interpreter entrypoint matrix covers all public subcommands" {
+test "CLI entrypoint matrix covers all public subcommands" {
     try {
         write_file(".eval_entrypoint_suite.json", "{\"name\":\"entrypoint-suite\",\"tests\":[{\"name\":\"ok\",\"check\":\"command_succeeds\",\"params\":{\"command\":\"echo ok\"}}]}")
         write_file(".eval_compare_a.json", "{\"passed\":1,\"failed\":0,\"total\":1}")

@@ -1114,8 +1114,10 @@ export func run_suite(config_path, options) {
 			}
 			ti := ti + 1
 		}
-		print_bullet_items(names)
-		print("Dry run: " + to_string(len(names)) + " tests would be executed")
+		if quiet_mode == false {
+			print_bullet_items(names)
+			print("Dry run: " + to_string(len(names)) + " tests would be executed")
+		}
 		return make_result(true, "", {
 			"suite_name": normalize_string(dict_get_or(config, "name", ""), "unnamed"),
 			"dry_run": true,

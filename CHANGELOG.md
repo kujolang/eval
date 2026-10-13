@@ -9,6 +9,8 @@
   Eval pass/fail exit semantics.
 
 ### FIX
+- Keep run/report JSON output free of progress lines and redact command strings in check evidence with the configured output policy before persistence.
+- Execute coverage, CLI integration, and control-contract assertions explicitly in CI and distinguish fixture-output parity from assertion execution; repaired coverage expectations now exercise the published runtime rather than silently snapshotting empty output.
 - Enforce comma-separated JSON shape requirements when no nonempty `required_keys` array is supplied; missing keys now fail instead of passing trivially.
 - Refresh the runtime pin to released Kujo 1.8.1 and the Docker builder to its supported Rust toolchain; align tests with the v2 result envelope. Snapshot updates explicitly replace existing snapshots, and line-count checks preserve trailing newlines.
 - Moved importable contract metadata to `src.eval_core` so library discovery and tests do not execute the CLI dispatcher; refreshed stale command/report-format assertions and restored the documented init example.

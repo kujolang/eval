@@ -730,6 +730,14 @@ func load_path_content_with_optional_cache(params, path) {
 	}
 }
 
+# Execution receives the original command; evidence receives the same redaction
+# policy as stdout/stderr, including configured custom patterns.
+func command_for_evidence(command, params) {
+    patterns := normalize_string_list(dict_get_or(params, "redact_output_patterns", []))
+    redacted := redact_sensitive_with_audit(command, patterns)
+    return dict_get_or(redacted, "text", "")
+}
+
 export func redact_sensitive(text) {
 	redacted := redact_sensitive_with_audit(normalize_string(text, ""), [])
 	return dict_get_or(redacted, "text", "")
@@ -790,7 +798,7 @@ export func check_command_succeeds(params) {
 	else { result = run_shell_with_policy(command, command_policy) }
 	ok := result["exit_code"] == 0 && result["ok"] == true
 	details := {
-		"command": command,
+		"command": command_for_evidence(command, params),
 		"exit_code": result["exit_code"],
 		"stdout": result["stdout"],
 		"stderr": result["stderr"],
@@ -822,7 +830,7 @@ export func check_command_fails(params) {
 	if timeout_ms > 0 { result = run_shell_timed_with_policy(command, timeout_ms, command_policy) }
 	else { result = run_shell_with_policy(command, command_policy) }
 	details := {
-		"command": command,
+		"command": command_for_evidence(command, params),
 		"exit_code": result["exit_code"],
 		"stdout": result["stdout"],
 		"stderr": result["stderr"],
@@ -858,7 +866,7 @@ export func check_exit_code_equals(params) {
 	if timeout_ms > 0 { result = run_shell_timed_with_policy(command, timeout_ms, command_policy) }
 	else { result = run_shell_with_policy(command, command_policy) }
 	details := {
-		"command": command,
+		"command": command_for_evidence(command, params),
 		"expected": expected_code,
 		"actual": result["exit_code"],
 		"stdout": result["stdout"],
@@ -982,12 +990,12 @@ export func check_output_contains(params) {
 	expected := normalize_string(dict_get_or(params, "expected", ""), "")
 	command_policy := command_policy_from_params(params)
 	if command == "" { return make_check_error("output_contains", "No command specified", {"command": "", "expected": expected}) }
-	if expected == "" { return make_check_error("output_contains", "No expected text specified", {"command": command, "expected": ""}) }
+	if expected == "" { return make_check_error("output_contains", "No expected text specified", {"command": command_for_evidence(command, params), "expected": ""}) }
 
 	result := run_shell_with_policy(command, command_policy)
 	if result["ok"] == false {
 		details := {
-			"command": command,
+			"command": command_for_evidence(command, params),
 			"expected": expected,
 			"exit_code": result["exit_code"],
 			"stdout": result["stdout"],
@@ -1003,7 +1011,7 @@ export func check_output_contains(params) {
 	stdout := result["stdout"]
 	found := contains_text(stdout, expected)
 	details := {
-		"command": command,
+		"command": command_for_evidence(command, params),
 		"expected": expected,
 		"found": found,
 		"exit_code": result["exit_code"],
@@ -1024,12 +1032,12 @@ export func check_output_does_not_contain(params) {
 	unexpected := normalize_string(dict_get_or(params, "expected", ""), "")
 	command_policy := command_policy_from_params(params)
 	if command == "" { return make_check_error("output_does_not_contain", "No command specified", {"command": "", "expected": unexpected}) }
-	if unexpected == "" { return make_check_error("output_does_not_contain", "No expected text specified", {"command": command, "expected": ""}) }
+	if unexpected == "" { return make_check_error("output_does_not_contain", "No expected text specified", {"command": command_for_evidence(command, params), "expected": ""}) }
 
 	result := run_shell_with_policy(command, command_policy)
 	if result["ok"] == false {
 		details := {
-			"command": command,
+			"command": command_for_evidence(command, params),
 			"expected": unexpected,
 			"exit_code": result["exit_code"],
 			"stdout": result["stdout"],
@@ -1045,7 +1053,7 @@ export func check_output_does_not_contain(params) {
 	stdout := result["stdout"]
 	found := contains_text(stdout, unexpected)
 	details := {
-		"command": command,
+		"command": command_for_evidence(command, params),
 		"expected": unexpected,
 		"found": found,
 		"exit_code": result["exit_code"],
@@ -1193,7 +1201,7 @@ export func check_snapshot_matches(params) {
 		if result["ok"] == false {
 			failure_details := {
 				"name": name,
-				"command": command,
+				"command": command_for_evidence(command, params),
 				"allowed_commands": dict_get_or(command_policy, "allowed_commands", []),
 				"allowed_command_patterns": dict_get_or(command_policy, "allowed_command_patterns", []),
 				"blocked_arg_patterns": dict_get_or(command_policy, "blocked_arg_patterns", []),
@@ -1400,13 +1408,13 @@ export func check_output_matches_glob(params) {
 		return make_check_error("output_matches_glob", "No command specified", {"command": "", "pattern": pattern})
 	}
 	if pattern == "" {
-		return make_check_error("output_matches_glob", "No pattern specified", {"command": command, "pattern": ""})
+		return make_check_error("output_matches_glob", "No pattern specified", {"command": command_for_evidence(command, params), "pattern": ""})
 	}
 
 	result := run_shell_with_policy(command, command_policy)
 	if result["ok"] == false {
 		details := {
-			"command": command,
+			"command": command_for_evidence(command, params),
 			"pattern": pattern,
 			"exit_code": result["exit_code"],
 			"allowed_commands": dict_get_or(command_policy, "allowed_commands", []),
@@ -1421,7 +1429,7 @@ export func check_output_matches_glob(params) {
 	stdout := result["stdout"]
 	found := contains_text(stdout, pattern)
 	details := {
-		"command": command,
+		"command": command_for_evidence(command, params),
 		"pattern": pattern,
 		"exit_code": result["exit_code"],
 		"allowed_commands": dict_get_or(command_policy, "allowed_commands", []),
@@ -1716,12 +1724,12 @@ export func check_command_stdout_json_path_equals(params) {
 	command_policy := command_policy_from_params(params)
 
 	if command == "" { return make_check_error("command_stdout_json_path_equals", "No command specified", {"json_path": json_path}) }
-	if json_path == "" { return make_check_error("command_stdout_json_path_equals", "No json_path specified", {"command": command}) }
+	if json_path == "" { return make_check_error("command_stdout_json_path_equals", "No json_path specified", {"command": command_for_evidence(command, params)}) }
 
 	result := run_shell_with_policy(command, command_policy)
 	if result["ok"] == false {
 		failure_details := {
-			"command": command,
+			"command": command_for_evidence(command, params),
 			"json_path": json_path,
 			"allowed_commands": dict_get_or(command_policy, "allowed_commands", []),
 			"allowed_command_patterns": dict_get_or(command_policy, "allowed_command_patterns", []),
@@ -1736,7 +1744,7 @@ export func check_command_stdout_json_path_equals(params) {
 	data := {}
 	try { data = parse_json(source) } except err {
 		parse_details := {
-			"command": command,
+			"command": command_for_evidence(command, params),
 			"json_path": json_path,
 			"allowed_commands": dict_get_or(command_policy, "allowed_commands", []),
 			"allowed_command_patterns": dict_get_or(command_policy, "allowed_command_patterns", []),
@@ -1750,7 +1758,7 @@ export func check_command_stdout_json_path_equals(params) {
 	resolved := resolve_json_path_value(data, json_path)
 	if dict_get_or(resolved, "ok", false) == false {
 		missing_path_details := {
-			"command": command,
+			"command": command_for_evidence(command, params),
 			"json_path": json_path,
 			"resolver_error": dict_get_or(resolved, "error", ""),
 			"allowed_commands": dict_get_or(command_policy, "allowed_commands", []),
@@ -1766,7 +1774,7 @@ export func check_command_stdout_json_path_equals(params) {
 	if expected_type != "" {
 		if value_matches_expected_json_type(current, expected_type) == false {
 			type_details := {
-				"command": command,
+				"command": command_for_evidence(command, params),
 				"json_path": json_path,
 				"expected_type": expected_type,
 				"actual_type": type(current),
@@ -1784,7 +1792,7 @@ export func check_command_stdout_json_path_equals(params) {
 	expected_str := stringify_json_value(expected)
 
 	details := {
-		"command": command,
+		"command": command_for_evidence(command, params),
 		"json_path": json_path,
 		"expected_type": expected_type,
 		"expected": expected_str,
@@ -1838,7 +1846,7 @@ export func check_command_timing_less_than(params) {
 
 	if result["ok"] == false {
 		details := {
-			"command": command,
+			"command": command_for_evidence(command, params),
 			"max_ms": max_ms,
 			"elapsed_ms": elapsed,
 			"allowed_commands": dict_get_or(command_policy, "allowed_commands", []),
@@ -1851,7 +1859,7 @@ export func check_command_timing_less_than(params) {
 	}
 
 	details := {
-		"command": command,
+		"command": command_for_evidence(command, params),
 		"max_ms": max_ms,
 		"elapsed_ms": elapsed,
 		"allowed_commands": dict_get_or(command_policy, "allowed_commands", []),
@@ -2019,7 +2027,7 @@ export func check_stdout_json_matches_shape(params) {
 	result := run_shell_with_policy(command, command_policy)
 	if result["ok"] == false {
 		details := {
-			"command": command,
+			"command": command_for_evidence(command, params),
 			"exit_code": result["exit_code"],
 			"allowed_commands": dict_get_or(command_policy, "allowed_commands", []),
 			"allowed_command_patterns": dict_get_or(command_policy, "allowed_command_patterns", []),
@@ -2035,7 +2043,7 @@ export func check_stdout_json_matches_shape(params) {
 	data := {}
 	try { data = parse_json(stdout) } except err {
 		details := {
-			"command": command,
+			"command": command_for_evidence(command, params),
 			"exit_code": result["exit_code"],
 			"allowed_commands": dict_get_or(command_policy, "allowed_commands", []),
 			"allowed_command_patterns": dict_get_or(command_policy, "allowed_command_patterns", []),
@@ -2050,7 +2058,7 @@ export func check_stdout_json_matches_shape(params) {
 	if type(required_keys_raw) == "array" { required_keys = required_keys_raw }
 	if len(required_keys) == 0 {
 		details := {
-			"command": command,
+			"command": command_for_evidence(command, params),
 			"allowed_commands": dict_get_or(command_policy, "allowed_commands", []),
 			"allowed_command_patterns": dict_get_or(command_policy, "allowed_command_patterns", []),
 			"blocked_arg_patterns": dict_get_or(command_policy, "blocked_arg_patterns", []),
@@ -2071,7 +2079,7 @@ export func check_stdout_json_matches_shape(params) {
 
 	if len(missing_keys) > 0 {
 		details := {
-			"command": command,
+			"command": command_for_evidence(command, params),
 			"missing_keys": missing_keys,
 			"allowed_commands": dict_get_or(command_policy, "allowed_commands", []),
 			"allowed_command_patterns": dict_get_or(command_policy, "allowed_command_patterns", []),
@@ -2082,7 +2090,7 @@ export func check_stdout_json_matches_shape(params) {
 		return make_check_error("stdout_json_matches_shape", "Missing required keys in stdout JSON", details)
 	}
 	details := {
-		"command": command,
+		"command": command_for_evidence(command, params),
 		"required_keys": required_keys,
 		"allowed_commands": dict_get_or(command_policy, "allowed_commands", []),
 		"allowed_command_patterns": dict_get_or(command_policy, "allowed_command_patterns", []),

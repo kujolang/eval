@@ -390,6 +390,21 @@ test "output_does_not_contain passes when text absent" {
 	assert_true(result["ok"])
 }
 
+test "command details redact built-in secrets without changing execution" {
+    result := check_command_succeeds({"command": "echo password=fixturePassword"})
+    assert_true(result["ok"])
+    details := result["data"]["details"]
+    assert_true(contains_text(details["command"], "REDACTED"))
+    assert_false(contains_text(to_json(result), "fixturePassword"))
+}
+
+test "command details redact custom patterns on validation failures" {
+    result := check_output_contains({"command": "echo fixture-private-marker", "expected": "", "redact_output_patterns": ["fixture-private-marker"]})
+    assert_false(result["ok"])
+    assert_true(contains_text(result["data"]["details"]["command"], "REDACTED"))
+    assert_false(contains_text(to_json(result), "fixture-private-marker"))
+}
+
 test "output_does_not_contain fails when text present" {
 	result := check_output_does_not_contain({"command": "echo Found ERROR here", "expected": "ERROR"})
 	assert_false(result["ok"])

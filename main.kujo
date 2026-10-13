@@ -549,7 +549,7 @@ func command_run(parsed) {
     dry_run_mode := dict_get_or(flags, "dry_run", false) == true
     no_color_mode := dict_get_or(flags, "no_color", false) == true
     summary_only_mode := dict_get_or(flags, "summary-only", false) == true
-    if summary_only_mode {
+    if summary_only_mode || is_json {
         quiet_mode = true
     }
     repeat_str := normalize_string(dict_get_or(flags, "repeat", "1"), "1")
@@ -879,6 +879,7 @@ func command_report(parsed) {
 
     if loaded_from_cache == false {
         results = run_suite(config_path, {
+            "quiet": bool_flag(dict_get_or(flags, "json", false), false),
             "policy_stage": normalize_string(dict_get_or(flags, "policy-stage", ""), ""),
             "output_dir_override": output_dir,
             "snapshot_dir_override": snapshot_dir
