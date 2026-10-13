@@ -10,7 +10,7 @@ jobs:
     strategy:
       matrix:
         kujo-ref:
-          - "108b87f83fbaf52372b32c9e90e023953d0b77b6"  # Current pinned
+          - "357796a1a868f2c80bc8f7b8edcc7d6aff384f04"  # Current pinned
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -44,4 +44,4 @@ jobs:
           set -euo pipefail
           kujo run main.kujo version
           kujo run main.kujo list-checks
-          kujo run main.kujo run examples/basic_suite.json --json
+          kujo run main.kujo run examples/release_gate_suite.json --json

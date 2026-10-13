@@ -1,8 +1,9 @@
-FROM rust:1.79-alpine AS kujo-builder
+FROM rust:1.96.0-bookworm AS kujo-builder
 
 ARG KUJO_RUNTIME_REF=
 
-RUN apk add --no-cache git musl-dev build-base
+RUN apt-get update && apt-get install -y --no-install-recommends git pkg-config ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /tmp/kujo-runtime
 COPY RUNTIME_VERSION /tmp/RUNTIME_VERSION
@@ -14,9 +15,10 @@ RUN if [ -z "$KUJO_RUNTIME_REF" ]; then KUJO_RUNTIME_REF="$(cat /tmp/RUNTIME_VER
 	&& git checkout --detach "$KUJO_RUNTIME_REF" \
 	&& cargo build --release --locked --manifest-path Cargo.toml
 
-FROM alpine:3.20
+FROM debian:bookworm-slim
 
-RUN apk add --no-cache ca-certificates bash
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates bash libgcc-s1 libstdc++6 \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /opt/kujo-eval
 COPY --from=kujo-builder /tmp/kujo-runtime/target/release/kujo /usr/local/bin/kujo
