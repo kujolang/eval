@@ -11,7 +11,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 30
+    timeout-minutes: 60
 
     steps:
       - name: Checkout repository
@@ -104,6 +104,15 @@ jobs:
 
       - name: Run contract tests
         run: kujo test-run tests/contract_tests.kujo -v
+
+      - name: Run coverage assertions
+        run: kujo test-run tests/coverage_tests.kujo -v
+
+      - name: Run CLI integration assertions
+        run: kujo test-run tests/cli_integration_tests.kujo -v
+
+      - name: Run control contract assertions
+        run: kujo test-run tests/control_contract_tests.kujo -v
 
       - name: Run Watchdog telemetry contract tests
         run: kujo test-run tests/watchdog_telemetry_tests.kujo -v

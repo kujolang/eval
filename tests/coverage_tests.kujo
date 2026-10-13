@@ -21,7 +21,7 @@ test_setup {
 	from src.report import generate_markdown_report, generate_html_report, generate_junit_report, generate_tap_report, save_report, print_report
 	from src.eval_core import run_suite, compare_runs, contract_version
 	from src.config import init_config, load_config, validate_config, lint_config_file, policy_explain_config, KNOWN_CHECKS
-	from src.common import dict_get_or, normalize_string, normalize_int, make_result, make_success_result, make_error_result
+	from src.common import contains_text, normalize_bool, normalize_array, normalize_dict, dict_get_or, normalize_string, normalize_int, make_result, make_success_result, make_error_result
 	from src.cli import parse_cli_flags, print_help
 }
 
@@ -123,13 +123,13 @@ test "generate_junit_report produces valid XML structure" {
 		]
 	}
 	xml := generate_junit_report(mock)
-	assert_true(contains(xml, "<?xml") == true)
-	assert_true(contains(xml, "<testsuite") == true)
-	assert_true(contains(xml, "junit-test") == true)
-	assert_true(contains(xml, "tests=\"3\"") == true)
-	assert_true(contains(xml, "failures=\"1\"") == true)
-	assert_true(contains(xml, "<testcase") == true)
-	assert_true(contains(xml, "</testsuite>") == true)
+	assert_true(contains_text(xml, "<?xml") == true)
+	assert_true(contains_text(xml, "<testsuite") == true)
+	assert_true(contains_text(xml, "junit-test") == true)
+	assert_true(contains_text(xml, "tests=\"3\"") == true)
+	assert_true(contains_text(xml, "failures=\"1\"") == true)
+	assert_true(contains_text(xml, "<testcase") == true)
+	assert_true(contains_text(xml, "</testsuite>") == true)
 }
 
 test "generate_junit_report includes failure messages" {
@@ -145,8 +145,8 @@ test "generate_junit_report includes failure messages" {
 		]
 	}
 	xml := generate_junit_report(mock)
-	assert_true(contains(xml, "<failure") == true)
-	assert_true(contains(xml, "expected failure occurred") == true)
+	assert_true(contains_text(xml, "<failure") == true)
+	assert_true(contains_text(xml, "expected failure occurred") == true)
 }
 
 test "generate_tap_report produces valid TAP format" {
@@ -163,9 +163,9 @@ test "generate_tap_report produces valid TAP format" {
 		]
 	}
 	tap := generate_tap_report(mock)
-	assert_true(contains(tap, "1..2") == true)
-	assert_true(contains(tap, "ok 1") == true)
-	assert_true(contains(tap, "ok 2") == true)
+	assert_true(contains_text(tap, "1..2") == true)
+	assert_true(contains_text(tap, "ok 1") == true)
+	assert_true(contains_text(tap, "ok 2") == true)
 }
 
 test "generate_tap_report marks failures as not ok" {
@@ -181,9 +181,9 @@ test "generate_tap_report marks failures as not ok" {
 		]
 	}
 	tap := generate_tap_report(mock)
-	assert_true(contains(tap, "1..1") == true)
-	assert_true(contains(tap, "not ok 1") == true)
-	assert_true(contains(tap, "file missing") == true)
+	assert_true(contains_text(tap, "1..1") == true)
+	assert_true(contains_text(tap, "not ok 1") == true)
+	assert_true(contains_text(tap, "file missing") == true)
 }
 
 test "save_report with html format writes .html file" {
@@ -201,7 +201,7 @@ test "save_report with html format writes .html file" {
 	result := save_report(mock_results, ".eval_cov_output", "html-report", "html")
 	assert_true(result["ok"])
 	path_val := dict_get_or(dict_get_or(result, "data", {}), "path", "")
-	assert_true(contains(path_val, ".html") == true)
+	assert_true(contains_text(path_val, ".html") == true)
 	try { remove_test_path(path_val); remove_test_path(".eval_cov_output") } except err {}
 }
 
@@ -241,7 +241,7 @@ test "snapshot handles empty content" {
 }
 
 test "check_snapshot_matches with command param runs command for content" {
-	try { save_snapshot("./snapshots", "cmd-snap", "hello") } except err {}
+	try { save_snapshot("./snapshots", "cmd-snap", "hello\n") } except err {}
 	result := check_snapshot_matches({"name": "cmd-snap", "command": "echo hello", "snapshot_dir": "./snapshots"})
 	assert_true(result["ok"])
 	try { remove_test_path("./snapshots/cmd-snap.snap") } except err {}
@@ -337,7 +337,7 @@ test "compare_runs detects mixed improvement and regression" {
 	data := dict_get_or(result, "data", {})
 	assert_true(dict_get_or(data, "regression", false))
 	assert_true(dict_get_or(data, "improvement", false))
-	assert_true(contains(dict_get_or(data, "summary", ""), "Mixed") == true)
+	assert_true(contains_text(dict_get_or(data, "summary", ""), "Mixed") == true)
 }
 
 test "compare_runs handles completely different suites" {
@@ -399,9 +399,9 @@ test "all check functions return {ok, error, data} envelope" {
 	while i < len(checks) {
 		kind := checks[i]
 		result := run_check(kind, {})
-		assert_true(has_key(result, "ok") == true)
-		assert_true(has_key(result, "error") == true)
-		assert_true(has_key(result, "data") == true)
+		assert_true(has_key(result, "ok") == 1)
+		assert_true(has_key(result, "error") == 1)
+		assert_true(has_key(result, "data") == 1)
 		i := i + 1
 	}
 }
@@ -558,7 +558,7 @@ test "run_suite applies per-test timeout_seconds override" {
 	trs := dict_get_or(data, "test_results", [])
 	if len(trs) > 0 {
 		first := trs[0]
-		assert_true(contains(normalize_string(dict_get_or(first, "message", ""), ""), "timed out") == true)
+		assert_true(contains_text(normalize_string(dict_get_or(first, "message", ""), ""), "timed out") == true)
 	}
 	try { remove_test_path(".eval_test_timeout_override.json") } except err {}
 }
@@ -582,7 +582,7 @@ test "core describe_module lists all 14 commands" {
 	desc := describe_module()
 	cmds := desc["commands"]
 	assert_equal(len(cmds), 14)
-	assert_true(contains(cmds[0], "init") == true || contains(cmds[1], "init") == true || contains(cmds[2], "init") == true)
+	assert_true(contains_text(cmds[0], "init") == true || contains_text(cmds[1], "init") == true || contains_text(cmds[2], "init") == true)
 }
 
 test "core describe_module reports correct check count" {
@@ -619,7 +619,7 @@ test "check_file_matches_regex accepts cached_file_content" {
 test "check_command_timing_less_than records timing data" {
 	result := check_command_timing_less_than({"command": "echo fast", "max_ms": 10000})
 	data := dict_get_or(result, "data", {})
-	assert_true(dict_get_or(data, "elapsed_ms", -1) >= 0)
+	assert_true(dict_get_or(dict_get_or(data, "details", {}), "elapsed_ms", -1) >= 0)
 }
 
 test "check_directory_contains handles no pattern (counts all files)" {
@@ -677,8 +677,8 @@ test "generate_markdown_report handles skipped tests in output" {
 		]
 	}
 	report := generate_markdown_report(mock)
-	assert_true(contains(report, "Skipped") == true)
-	assert_true(contains(report, "2") == true)
+	assert_true(contains_text(report, "Skipped") == true)
+	assert_true(contains_text(report, "2") == true)
 }
 
 test "generate_markdown_report handles empty test results" {
@@ -692,8 +692,8 @@ test "generate_markdown_report handles empty test results" {
 		"test_results": []
 	}
 	report := generate_markdown_report(mock)
-	assert_true(contains(report, "empty-report") == true)
-	assert_true(contains(report, "No test results") == true)
+	assert_true(contains_text(report, "empty-report") == true)
+	assert_true(contains_text(report, "No test results") == true)
 }
 
 # ===========================================================================
@@ -744,7 +744,7 @@ test "run_shell rejects excessively long command" {
 	}
 	result := run_shell(too_long)
 	assert_false(result["ok"])
-	assert_true(contains(dict_get_or(result, "error", ""), "maximum length") == true)
+	assert_true(contains_text(dict_get_or(result, "error", ""), "maximum length") == true)
 }
 
 test "check_json_value_equals rejects invalid JSON" {
@@ -787,7 +787,7 @@ test "json_value_equals fails when expected_type does not match" {
 	})
 	assert_false(result["ok"])
 	data := dict_get_or(result, "data", {})
-	assert_true(contains(dict_get_or(data, "message", ""), "Type assertion failed") == true)
+	assert_true(contains_text(dict_get_or(data, "message", ""), "Type assertion failed") == true)
 }
 
 test "command_stdout_json_path_equals supports array indices and expected_type" {
@@ -899,7 +899,7 @@ test "validate_config rejects unknown stage path policy profile" {
 	}
 	result := validate_config(cfg)
 	assert_false(result["ok"])
-	assert_true(contains(dict_get_or(result, "error", ""), "policy_stage_overlays.ci.path_policy_profile") == true)
+	assert_true(contains_text(dict_get_or(result, "error", ""), "policy_stage_overlays.ci.path_policy_profile") == true)
 }
 
 test "policy_explain_config emits high risk warnings for open release posture" {
@@ -1010,7 +1010,7 @@ test "run_check returns error for completely unknown check type" {
 	result := run_check("this_check_does_not_exist_xyz", {})
 	assert_false(result["ok"])
 	data := dict_get_or(result, "data", {})
-	assert_true(contains(dict_get_or(data, "message", ""), "Unknown") == true)
+	assert_true(contains_text(dict_get_or(data, "message", ""), "Unknown") == true)
 }
 
 # ===========================================================================

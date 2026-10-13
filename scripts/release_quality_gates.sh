@@ -21,8 +21,8 @@ echo ""
 mkdir -p eval_results
 export KUJO_EVAL_BENCHMARK_ARTIFACT_PATH="$PROJECT_ROOT/eval_results/benchmarks.json"
 
-# Gate 1: All test suites pass
-echo "[GATE 1] Running test suites..."
+# Gate 1: Fixture output parity (assertions use kujo test-run in CI)
+echo "[GATE 1] Checking fixture output parity..."
 TEST_OUT=""
 if ! TEST_OUT="$($KUJO_BIN test --update --runtime vm 2>&1)"; then
 	echo "$TEST_OUT"
@@ -35,11 +35,11 @@ if ! TEST_OUT="$($KUJO_BIN test 2>&1)"; then
     exit 1
 fi
 echo "$TEST_OUT"
-echo "PASS: All test suites pass"
+echo "PASS: Fixture output parity passes"
 echo ""
 
 # Gate 1B: Benchmark suite timing budget
-echo "[GATE 1B] Benchmark suite timing budget..."
+echo "[GATE 1B] Benchmark fixture startup timing budget..."
 BENCH_ARTIFACT="eval_results/benchmarks.json"
 BENCH_SUITE_MS="$(echo "$TEST_OUT" | sed -nE 's#.*tests/benchmark_tests\.kujo \(([0-9]+\.[0-9]+)ms\).*#\1#p' | head -n1)"
 if [ -z "$BENCH_SUITE_MS" ]; then
