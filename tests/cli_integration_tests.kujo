@@ -3,12 +3,13 @@
 # Tests each CLI subcommand end-to-end.
 
 test_setup {
+    from tests.helpers.support import remove_test_path
     from src.eval_core import run_suite, compare_runs, contract_version
     from src.config import init_config, load_config, validate_config, KNOWN_CHECKS
     from src.checks import run_shell
     from src.report import save_report, save_report_with_options
-    from main import describe_module
-}
+    from src.eval_core import describe_module
+    from src.common import dict_get_or
 
 func resolve_kujo_bin() {
     override := trim(env("KUJO_BIN"))
@@ -19,6 +20,7 @@ func resolve_kujo_bin() {
 }
 
 KUJO_BIN := resolve_kujo_bin()
+}
 
 # ===========================================================================
 # init command
@@ -35,7 +37,7 @@ test "init_config creates eval.json with correct structure" {
     assert_true(type(cfg["tests"]) == "array")
     assert_true(len(cfg["tests"]) >= 1)
 
-    try {remove_file("eval.json")} except err {}
+    try {remove_test_path("eval.json")} except err {}
 }
 
 test "CLI init supports --from-scout import alias" {
@@ -54,8 +56,8 @@ test "CLI init supports --from-scout import alias" {
     assert_true(type(cfg["tests"]) == "array")
     assert_equal(len(cfg["tests"]), 1)
 
-    try {remove_file(".eval_scout_import.json")} except err {}
-    try {remove_file("eval.json")} except err {}
+    try {remove_test_path(".eval_scout_import.json")} except err {}
+    try {remove_test_path("eval.json")} except err {}
 }
 
 # ===========================================================================
@@ -74,7 +76,7 @@ test "run_suite executes all tests in valid config" {
     assert_equal(dict_get_or(results_data, "passed", 0), 2)
     assert_equal(dict_get_or(results_data, "failed", 0), 0)
 
-    try {remove_file(".eval_test_cli.json")} except err {}
+    try {remove_test_path(".eval_test_cli.json")} except err {}
 }
 
 test "run_suite returns error for missing config" {
@@ -156,10 +158,10 @@ test "save_report defaults to incremental mode with section-aware cache" {
     assert_true(found_test_results_unchanged)
 
     try {
-        remove_file(output_dir + "/eval-report.md")
-        remove_file(output_dir + "/eval-report.md.cache.json")
-        remove_file(output_dir + "/eval-report.md.bak")
-        remove_file(output_dir)
+        remove_test_path(output_dir + "/eval-report.md")
+        remove_test_path(output_dir + "/eval-report.md.cache.json")
+        remove_test_path(output_dir + "/eval-report.md.bak")
+        remove_test_path(output_dir)
     } except err {}
 }
 
@@ -196,7 +198,7 @@ test "load_config returns error for invalid JSON" {
     } except err {}
     result := load_config(".eval_test_bad.json")
     assert_false(result["ok"])
-    try {remove_file(".eval_test_bad.json")} except err {}
+    try {remove_test_path(".eval_test_bad.json")} except err {}
 }
 
 test "validate_config accepts config with all fields" {
@@ -281,7 +283,7 @@ test "CLI exit code contract: success returns 0" {
     assert_true(result["ok"])
     assert_equal(result["exit_code"], 0)
 
-    try {remove_file(".eval_exit_contract_success.json")} except err {}
+    try {remove_test_path(".eval_exit_contract_success.json")} except err {}
 }
 
 test "CLI exit code contract: assertion failures return 1" {
@@ -293,7 +295,7 @@ test "CLI exit code contract: assertion failures return 1" {
     assert_true(result["ok"])
     assert_equal(result["exit_code"], 1)
 
-    try {remove_file(".eval_exit_contract_fail.json")} except err {}
+    try {remove_test_path(".eval_exit_contract_fail.json")} except err {}
 }
 
 test "CLI exit code contract: usage errors return 1" {
@@ -339,7 +341,18 @@ test "CLI run --json returns stable envelope on success" {
     assert_equal(has_key(data, "failed"), 1)
     assert_equal(has_key(data, "total"), 1)
 
-    try {remove_file(".eval_json_shape_suite.json")} except err {}
+    try {remove_test_path(".eval_json_shape_suite.json")} except err {}
+}
+
+test "CLI dry run JSON stays machine-readable without executing checks" {
+    write_file(".eval_dry_json_suite.json", "{\"name\":\"dry-json\",\"tests\":[{\"name\":\"must-not-run\",\"check\":\"command_succeeds\",\"params\":{\"command\":\"exit 42\"}}]}", true)
+    result := run_shell(KUJO_BIN + " run main.kujo run .eval_dry_json_suite.json --dry-run --json")
+    assert_true(result["ok"])
+    assert_equal(result["exit_code"], 0)
+    payload := parse_json(result["stdout"])
+    assert_true(payload["data"]["dry_run"])
+    assert_equal(payload["data"]["test_count"], 1)
+    remove_test_path(".eval_dry_json_suite.json")
 }
 
 test "CLI run --summary-only prints compact output" {
@@ -353,7 +366,7 @@ test "CLI run --summary-only prints compact output" {
     assert_true(contains(result["stdout"], "Summary: PASS") == 1)
     assert_true(contains(result["stdout"], "# Eval Report:") == 0)
 
-    try {remove_file(".eval_summary_suite.json")} except err {}
+    try {remove_test_path(".eval_summary_suite.json")} except err {}
 }
 
 test "CLI run applies --policy-stage overlays" {
@@ -370,25 +383,25 @@ test "CLI run applies --policy-stage overlays" {
     assert_true(ci_result["exit_code"] != 0)
 
     try {
-        remove_file(".eval_cli_policy_stage_suite.json")
-        remove_file(".eval_cli_policy_default_out/eval-report.md")
-        remove_file(".eval_cli_policy_default_out/last_run.json")
-        remove_file(".eval_cli_policy_default_out/history.json")
-        remove_file(".eval_cli_policy_default_out/badge.json")
-        remove_file(".eval_cli_policy_default_out/last_failures.json")
-        remove_file(".eval_cli_policy_default_out/summary.json")
-        remove_file(".eval_cli_policy_default_out/cli-summary.json")
-        remove_file(".eval_cli_policy_default_out/artifact-manifest.json")
-        remove_file(".eval_cli_policy_default_out")
-        remove_file(".eval_cli_policy_ci_out/eval-report.md")
-        remove_file(".eval_cli_policy_ci_out/last_run.json")
-        remove_file(".eval_cli_policy_ci_out/history.json")
-        remove_file(".eval_cli_policy_ci_out/badge.json")
-        remove_file(".eval_cli_policy_ci_out/last_failures.json")
-        remove_file(".eval_cli_policy_ci_out/summary.json")
-        remove_file(".eval_cli_policy_ci_out/cli-summary.json")
-        remove_file(".eval_cli_policy_ci_out/artifact-manifest.json")
-        remove_file(".eval_cli_policy_ci_out")
+        remove_test_path(".eval_cli_policy_stage_suite.json")
+        remove_test_path(".eval_cli_policy_default_out/eval-report.md")
+        remove_test_path(".eval_cli_policy_default_out/last_run.json")
+        remove_test_path(".eval_cli_policy_default_out/history.json")
+        remove_test_path(".eval_cli_policy_default_out/badge.json")
+        remove_test_path(".eval_cli_policy_default_out/last_failures.json")
+        remove_test_path(".eval_cli_policy_default_out/summary.json")
+        remove_test_path(".eval_cli_policy_default_out/cli-summary.json")
+        remove_test_path(".eval_cli_policy_default_out/artifact-manifest.json")
+        remove_test_path(".eval_cli_policy_default_out")
+        remove_test_path(".eval_cli_policy_ci_out/eval-report.md")
+        remove_test_path(".eval_cli_policy_ci_out/last_run.json")
+        remove_test_path(".eval_cli_policy_ci_out/history.json")
+        remove_test_path(".eval_cli_policy_ci_out/badge.json")
+        remove_test_path(".eval_cli_policy_ci_out/last_failures.json")
+        remove_test_path(".eval_cli_policy_ci_out/summary.json")
+        remove_test_path(".eval_cli_policy_ci_out/cli-summary.json")
+        remove_test_path(".eval_cli_policy_ci_out/artifact-manifest.json")
+        remove_test_path(".eval_cli_policy_ci_out")
     } except err {}
 }
 
@@ -406,16 +419,16 @@ test "CLI run can overwrite existing run artifacts in same output directory" {
     assert_true(path_exists(".eval_overwrite_out/last_run.json"))
 
     try {
-        remove_file(".eval_overwrite_suite.json")
-        remove_file(".eval_overwrite_out/eval-report.md")
-        remove_file(".eval_overwrite_out/last_run.json")
-        remove_file(".eval_overwrite_out/history.json")
-        remove_file(".eval_overwrite_out/badge.json")
-        remove_file(".eval_overwrite_out/last_failures.json")
-        remove_file(".eval_overwrite_out/summary.json")
-        remove_file(".eval_overwrite_out/cli-summary.json")
-        remove_file(".eval_overwrite_out/artifact-manifest.json")
-        remove_file(".eval_overwrite_out")
+        remove_test_path(".eval_overwrite_suite.json")
+        remove_test_path(".eval_overwrite_out/eval-report.md")
+        remove_test_path(".eval_overwrite_out/last_run.json")
+        remove_test_path(".eval_overwrite_out/history.json")
+        remove_test_path(".eval_overwrite_out/badge.json")
+        remove_test_path(".eval_overwrite_out/last_failures.json")
+        remove_test_path(".eval_overwrite_out/summary.json")
+        remove_test_path(".eval_overwrite_out/cli-summary.json")
+        remove_test_path(".eval_overwrite_out/artifact-manifest.json")
+        remove_test_path(".eval_overwrite_out")
     } except err {}
 }
 
@@ -489,17 +502,17 @@ test "CLI run writes summary and artifact manifest files" {
     }
 
     try {
-        remove_file(".eval_manifest_suite.json")
-        remove_file(".eval_manifest_out/eval-report.md")
-        remove_file(".eval_manifest_out/last_run.json")
-        remove_file(".eval_manifest_out/history.json")
-        remove_file(".eval_manifest_out/badge.json")
-        remove_file(".eval_manifest_out/last_failures.json")
-        remove_file(".eval_manifest_out/summary.json")
-        remove_file(".eval_manifest_out/evaluation-result.json")
-        remove_file(".eval_manifest_out/cli-summary.json")
-        remove_file(".eval_manifest_out/artifact-manifest.json")
-        remove_file(".eval_manifest_out")
+        remove_test_path(".eval_manifest_suite.json")
+        remove_test_path(".eval_manifest_out/eval-report.md")
+        remove_test_path(".eval_manifest_out/last_run.json")
+        remove_test_path(".eval_manifest_out/history.json")
+        remove_test_path(".eval_manifest_out/badge.json")
+        remove_test_path(".eval_manifest_out/last_failures.json")
+        remove_test_path(".eval_manifest_out/summary.json")
+        remove_test_path(".eval_manifest_out/evaluation-result.json")
+        remove_test_path(".eval_manifest_out/cli-summary.json")
+        remove_test_path(".eval_manifest_out/artifact-manifest.json")
+        remove_test_path(".eval_manifest_out")
     } except err {}
 }
 
@@ -522,18 +535,18 @@ test "CLI run binds optional subject context without orchestration commands" {
     assert_true(has_key(payload, "disposition") == 0)
 
     try {
-        remove_file(".eval_subject_suite.json")
-        remove_file(".eval_subject_context.json")
-        remove_file(".eval_subject_out/eval-report.md")
-        remove_file(".eval_subject_out/last_run.json")
-        remove_file(".eval_subject_out/history.json")
-        remove_file(".eval_subject_out/badge.json")
-        remove_file(".eval_subject_out/last_failures.json")
-        remove_file(".eval_subject_out/summary.json")
-        remove_file(".eval_subject_out/evaluation-result.json")
-        remove_file(".eval_subject_out/cli-summary.json")
-        remove_file(".eval_subject_out/artifact-manifest.json")
-        remove_file(".eval_subject_out")
+        remove_test_path(".eval_subject_suite.json")
+        remove_test_path(".eval_subject_context.json")
+        remove_test_path(".eval_subject_out/eval-report.md")
+        remove_test_path(".eval_subject_out/last_run.json")
+        remove_test_path(".eval_subject_out/history.json")
+        remove_test_path(".eval_subject_out/badge.json")
+        remove_test_path(".eval_subject_out/last_failures.json")
+        remove_test_path(".eval_subject_out/summary.json")
+        remove_test_path(".eval_subject_out/evaluation-result.json")
+        remove_test_path(".eval_subject_out/cli-summary.json")
+        remove_test_path(".eval_subject_out/artifact-manifest.json")
+        remove_test_path(".eval_subject_out")
     } except err {}
 }
 
@@ -552,16 +565,16 @@ test "CLI run persists redacted nested secret payloads in artifacts" {
     assert_true(contains(last_run_raw, "REDACTED") == 1)
 
     try {
-        remove_file(".eval_nested_redaction_suite.json")
-        remove_file(".eval_nested_redaction_out/eval-report.md")
-        remove_file(".eval_nested_redaction_out/last_run.json")
-        remove_file(".eval_nested_redaction_out/history.json")
-        remove_file(".eval_nested_redaction_out/badge.json")
-        remove_file(".eval_nested_redaction_out/last_failures.json")
-        remove_file(".eval_nested_redaction_out/summary.json")
-        remove_file(".eval_nested_redaction_out/cli-summary.json")
-        remove_file(".eval_nested_redaction_out/artifact-manifest.json")
-        remove_file(".eval_nested_redaction_out")
+        remove_test_path(".eval_nested_redaction_suite.json")
+        remove_test_path(".eval_nested_redaction_out/eval-report.md")
+        remove_test_path(".eval_nested_redaction_out/last_run.json")
+        remove_test_path(".eval_nested_redaction_out/history.json")
+        remove_test_path(".eval_nested_redaction_out/badge.json")
+        remove_test_path(".eval_nested_redaction_out/last_failures.json")
+        remove_test_path(".eval_nested_redaction_out/summary.json")
+        remove_test_path(".eval_nested_redaction_out/cli-summary.json")
+        remove_test_path(".eval_nested_redaction_out/artifact-manifest.json")
+        remove_test_path(".eval_nested_redaction_out")
     } except err {}
 }
 
@@ -579,7 +592,7 @@ test "CLI verify-manifest fails after artifact tampering" {
     assert_equal(verify_pass["exit_code"], 0)
 
     try {
-        write_file(".eval_manifest_tamper_out/summary.json", "{\"tampered\":true}")
+        write_file(".eval_manifest_tamper_out/summary.json", "{\"tampered\":true}", true)
     } except err {}
 
     verify_fail := run_shell(KUJO_BIN + " run main.kujo verify-manifest --output-dir .eval_manifest_tamper_out --json")
@@ -591,16 +604,16 @@ test "CLI verify-manifest fails after artifact tampering" {
     assert_true(contains(dict_get_or(failure_payload, "error", ""), "verification failed") == 1)
 
     try {
-        remove_file(".eval_manifest_tamper_suite.json")
-        remove_file(".eval_manifest_tamper_out/eval-report.md")
-        remove_file(".eval_manifest_tamper_out/last_run.json")
-        remove_file(".eval_manifest_tamper_out/history.json")
-        remove_file(".eval_manifest_tamper_out/badge.json")
-        remove_file(".eval_manifest_tamper_out/last_failures.json")
-        remove_file(".eval_manifest_tamper_out/summary.json")
-        remove_file(".eval_manifest_tamper_out/cli-summary.json")
-        remove_file(".eval_manifest_tamper_out/artifact-manifest.json")
-        remove_file(".eval_manifest_tamper_out")
+        remove_test_path(".eval_manifest_tamper_suite.json")
+        remove_test_path(".eval_manifest_tamper_out/eval-report.md")
+        remove_test_path(".eval_manifest_tamper_out/last_run.json")
+        remove_test_path(".eval_manifest_tamper_out/history.json")
+        remove_test_path(".eval_manifest_tamper_out/badge.json")
+        remove_test_path(".eval_manifest_tamper_out/last_failures.json")
+        remove_test_path(".eval_manifest_tamper_out/summary.json")
+        remove_test_path(".eval_manifest_tamper_out/cli-summary.json")
+        remove_test_path(".eval_manifest_tamper_out/artifact-manifest.json")
+        remove_test_path(".eval_manifest_tamper_out")
     } except err {}
 }
 
@@ -622,24 +635,24 @@ test "CLI run respects history_retention_runs" {
     assert_equal(len(history), 2)
 
     try {
-        remove_file(".eval_history_retention_suite.json")
-        remove_file(".eval_history_retention_out/eval-report.md")
-        remove_file(".eval_history_retention_out/eval-report.md.bak")
-        remove_file(".eval_history_retention_out/last_run.json")
-        remove_file(".eval_history_retention_out/last_run.json.bak")
-        remove_file(".eval_history_retention_out/history.json")
-        remove_file(".eval_history_retention_out/history.json.bak")
-        remove_file(".eval_history_retention_out/badge.json")
-        remove_file(".eval_history_retention_out/badge.json.bak")
-        remove_file(".eval_history_retention_out/last_failures.json")
-        remove_file(".eval_history_retention_out/last_failures.json.bak")
-        remove_file(".eval_history_retention_out/summary.json")
-        remove_file(".eval_history_retention_out/summary.json.bak")
-        remove_file(".eval_history_retention_out/cli-summary.json")
-        remove_file(".eval_history_retention_out/cli-summary.json.bak")
-        remove_file(".eval_history_retention_out/artifact-manifest.json")
-        remove_file(".eval_history_retention_out/artifact-manifest.json.bak")
-        remove_file(".eval_history_retention_out")
+        remove_test_path(".eval_history_retention_suite.json")
+        remove_test_path(".eval_history_retention_out/eval-report.md")
+        remove_test_path(".eval_history_retention_out/eval-report.md.bak")
+        remove_test_path(".eval_history_retention_out/last_run.json")
+        remove_test_path(".eval_history_retention_out/last_run.json.bak")
+        remove_test_path(".eval_history_retention_out/history.json")
+        remove_test_path(".eval_history_retention_out/history.json.bak")
+        remove_test_path(".eval_history_retention_out/badge.json")
+        remove_test_path(".eval_history_retention_out/badge.json.bak")
+        remove_test_path(".eval_history_retention_out/last_failures.json")
+        remove_test_path(".eval_history_retention_out/last_failures.json.bak")
+        remove_test_path(".eval_history_retention_out/summary.json")
+        remove_test_path(".eval_history_retention_out/summary.json.bak")
+        remove_test_path(".eval_history_retention_out/cli-summary.json")
+        remove_test_path(".eval_history_retention_out/cli-summary.json.bak")
+        remove_test_path(".eval_history_retention_out/artifact-manifest.json")
+        remove_test_path(".eval_history_retention_out/artifact-manifest.json.bak")
+        remove_test_path(".eval_history_retention_out")
     } except err {}
 }
 
@@ -661,16 +674,16 @@ test "CLI run respects aux_artifact_retention_files" {
     }
 
     try {
-        remove_file(".eval_aux_retention_suite.json")
-        remove_file(".eval_aux_retention_out/eval-report.md")
-        remove_file(".eval_aux_retention_out/last_run.json")
-        remove_file(".eval_aux_retention_out/history.json")
-        remove_file(".eval_aux_retention_out/badge.json")
-        remove_file(".eval_aux_retention_out/last_failures.json")
-        remove_file(".eval_aux_retention_out/summary.json")
-        remove_file(".eval_aux_retention_out/cli-summary.json")
-        remove_file(".eval_aux_retention_out/artifact-manifest.json")
-        remove_file(".eval_aux_retention_out")
+        remove_test_path(".eval_aux_retention_suite.json")
+        remove_test_path(".eval_aux_retention_out/eval-report.md")
+        remove_test_path(".eval_aux_retention_out/last_run.json")
+        remove_test_path(".eval_aux_retention_out/history.json")
+        remove_test_path(".eval_aux_retention_out/badge.json")
+        remove_test_path(".eval_aux_retention_out/last_failures.json")
+        remove_test_path(".eval_aux_retention_out/summary.json")
+        remove_test_path(".eval_aux_retention_out/cli-summary.json")
+        remove_test_path(".eval_aux_retention_out/artifact-manifest.json")
+        remove_test_path(".eval_aux_retention_out")
     } except err {}
 }
 
@@ -697,12 +710,12 @@ test "CLI report writes machine summary channel" {
     assert_true(path_exists(dict_get_or(channel, "manifest_path", "")))
 
     try {
-        remove_file(".eval_report_channel_suite.json")
-        remove_file(".eval_report_channel_out/eval-report.md")
-        remove_file(".eval_report_channel_out/summary.json")
-        remove_file(".eval_report_channel_out/cli-summary.json")
-        remove_file(".eval_report_channel_out/artifact-manifest.json")
-        remove_file(".eval_report_channel_out")
+        remove_test_path(".eval_report_channel_suite.json")
+        remove_test_path(".eval_report_channel_out/eval-report.md")
+        remove_test_path(".eval_report_channel_out/summary.json")
+        remove_test_path(".eval_report_channel_out/cli-summary.json")
+        remove_test_path(".eval_report_channel_out/artifact-manifest.json")
+        remove_test_path(".eval_report_channel_out")
     } except err {}
 }
 
@@ -720,9 +733,9 @@ test "CLI report --rerun can overwrite existing report artifact" {
     assert_true(path_exists(".eval_overwrite_report_out/eval-report.md"))
 
     try {
-        remove_file(".eval_overwrite_report_suite.json")
-        remove_file(".eval_overwrite_report_out/eval-report.md")
-        remove_file(".eval_overwrite_report_out")
+        remove_test_path(".eval_overwrite_report_suite.json")
+        remove_test_path(".eval_overwrite_report_out/eval-report.md")
+        remove_test_path(".eval_overwrite_report_out")
     } except err {}
 }
 
@@ -745,7 +758,7 @@ test "CLI report --json returns stable envelope" {
     assert_equal(has_key(data, "results"), 1)
     assert_equal(has_key(data, "from_cache"), 1)
 
-    try {remove_file(".eval_json_shape_suite.json")} except err {}
+    try {remove_test_path(".eval_json_shape_suite.json")} except err {}
 }
 
 test "CLI report reuses unchanged artifact content" {
@@ -766,7 +779,8 @@ test "CLI report reuses unchanged artifact content" {
 
     first_payload := parse_json(first["stdout"])
     first_data := dict_get_or(first_payload, "data", {})
-    assert_false(dict_get_or(first_data, "report_cached", true))
+    # The seed run already wrote the identical report and its cache.
+    assert_true(dict_get_or(first_data, "report_cached", false))
     assert_true(dict_get_or(first_data, "report_incremental_mode", false))
 
     second_payload := parse_json(second["stdout"])
@@ -778,17 +792,17 @@ test "CLI report reuses unchanged artifact content" {
     assert_true(path_exists(".eval_report_cache_out/eval-report.md.cache.json"))
 
     try {
-        remove_file(".eval_report_cache_suite.json")
-        remove_file(".eval_report_cache_out/eval-report.md")
-        remove_file(".eval_report_cache_out/eval-report.md.cache.json")
-        remove_file(".eval_report_cache_out/last_run.json")
-        remove_file(".eval_report_cache_out/history.json")
-        remove_file(".eval_report_cache_out/badge.json")
-        remove_file(".eval_report_cache_out/last_failures.json")
-        remove_file(".eval_report_cache_out/summary.json")
-        remove_file(".eval_report_cache_out/cli-summary.json")
-        remove_file(".eval_report_cache_out/artifact-manifest.json")
-        remove_file(".eval_report_cache_out")
+        remove_test_path(".eval_report_cache_suite.json")
+        remove_test_path(".eval_report_cache_out/eval-report.md")
+        remove_test_path(".eval_report_cache_out/eval-report.md.cache.json")
+        remove_test_path(".eval_report_cache_out/last_run.json")
+        remove_test_path(".eval_report_cache_out/history.json")
+        remove_test_path(".eval_report_cache_out/badge.json")
+        remove_test_path(".eval_report_cache_out/last_failures.json")
+        remove_test_path(".eval_report_cache_out/summary.json")
+        remove_test_path(".eval_report_cache_out/cli-summary.json")
+        remove_test_path(".eval_report_cache_out/artifact-manifest.json")
+        remove_test_path(".eval_report_cache_out")
     } except err {}
 }
 
@@ -808,7 +822,8 @@ test "CLI policy-explain emits deterministic stage overlay payload" {
     assert_true(dict_get_or(data, "stage_overlay_applied", false))
     assert_true(dict_get_or(data, "strict_command_policy_enforced", false))
     assert_true(dict_get_or(data, "path_allowlist_enforced", false))
-    assert_equal(dict_get_or(data, "risk_tier", ""), "low")
+    assert_equal(dict_get_or(data, "risk_tier", ""), "moderate")
+    assert_equal(dict_get_or(data, "risk_score", 0), 2)
 
     effective := dict_get_or(data, "effective_policy", {})
     assert_equal(dict_get_or(effective, "path_policy_mode", ""), "allowlist-required")
@@ -821,7 +836,7 @@ test "CLI policy-explain emits deterministic stage overlay payload" {
     assert_true(len(risk_hints) >= 1)
 
     try {
-        remove_file(".eval_policy_explain_suite.json")
+        remove_test_path(".eval_policy_explain_suite.json")
     } except err {}
 }
 
@@ -853,7 +868,7 @@ test "CLI policy-explain warns on open release posture" {
     assert_true(found_open_command)
     assert_true(found_open_path)
 
-    try {remove_file(".eval_policy_explain_open_suite.json")} except err {}
+    try {remove_test_path(".eval_policy_explain_open_suite.json")} except err {}
 }
 
 test "CLI artifact contract fixtures remain stable" {
@@ -885,7 +900,7 @@ test "CLI lint returns structured diagnostics with actionable hints" {
     assert_true(len(dict_get_or(first_diag, "suggested_fix", "")) > 0)
 
     try {
-        remove_file(".eval_lint_bad_suite.json")
+        remove_test_path(".eval_lint_bad_suite.json")
     } except err {}
 }
 
@@ -916,10 +931,10 @@ test "CLI watch bounded loop exits successfully with valid config" {
     assert_true(result["ok"])
     assert_equal(result["exit_code"], 0)
 
-    try {remove_file(".eval_watch_suite.json")} except err {}
+    try {remove_test_path(".eval_watch_suite.json")} except err {}
 }
 
-test "Interpreter entrypoint matrix covers all public subcommands" {
+test "CLI entrypoint matrix covers all public subcommands" {
     try {
         write_file(".eval_entrypoint_suite.json", "{\"name\":\"entrypoint-suite\",\"tests\":[{\"name\":\"ok\",\"check\":\"command_succeeds\",\"params\":{\"command\":\"echo ok\"}}]}")
         write_file(".eval_compare_a.json", "{\"passed\":1,\"failed\":0,\"total\":1}")
@@ -960,22 +975,22 @@ test "Interpreter entrypoint matrix covers all public subcommands" {
     }
 
     try {
-        remove_file("eval.json")
-        remove_file(".eval_entrypoint_suite.json")
-        remove_file(".eval_compare_a.json")
-        remove_file(".eval_compare_b.json")
-        remove_file(".eval_diff_a.txt")
-        remove_file(".eval_diff_b.txt")
-        remove_file(".eval_exported_suite.sh")
-        remove_file(".eval_entrypoint_out/eval-report.md")
-        remove_file(".eval_entrypoint_out/last_run.json")
-        remove_file(".eval_entrypoint_out/history.json")
-        remove_file(".eval_entrypoint_out/badge.json")
-        remove_file(".eval_entrypoint_out/last_failures.json")
-        remove_file(".eval_entrypoint_out/summary.json")
-        remove_file(".eval_entrypoint_out/cli-summary.json")
-        remove_file(".eval_entrypoint_out/artifact-manifest.json")
-        remove_file(".eval_entrypoint_out")
-        remove_file(".eval_snapshots_dir")
+        remove_test_path("eval.json")
+        remove_test_path(".eval_entrypoint_suite.json")
+        remove_test_path(".eval_compare_a.json")
+        remove_test_path(".eval_compare_b.json")
+        remove_test_path(".eval_diff_a.txt")
+        remove_test_path(".eval_diff_b.txt")
+        remove_test_path(".eval_exported_suite.sh")
+        remove_test_path(".eval_entrypoint_out/eval-report.md")
+        remove_test_path(".eval_entrypoint_out/last_run.json")
+        remove_test_path(".eval_entrypoint_out/history.json")
+        remove_test_path(".eval_entrypoint_out/badge.json")
+        remove_test_path(".eval_entrypoint_out/last_failures.json")
+        remove_test_path(".eval_entrypoint_out/summary.json")
+        remove_test_path(".eval_entrypoint_out/cli-summary.json")
+        remove_test_path(".eval_entrypoint_out/artifact-manifest.json")
+        remove_test_path(".eval_entrypoint_out")
+        remove_test_path(".eval_snapshots_dir")
     } except err {}
 }

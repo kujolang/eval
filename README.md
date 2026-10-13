@@ -282,6 +282,9 @@ Expected output signal:
 Common follow-ups:
 
 ```bash
+# Create your own suite (writes eval.json in the current directory).
+kujo run main.kujo init --name my-suite
+
 # Compact human summary
 kujo run main.kujo run examples/release_gate_suite.json --output-dir .eval_quickstart --summary-only
 
@@ -340,8 +343,20 @@ Validated on 2026-05-25 with the `kujo` command on `PATH`.
 | `kujo run main.kujo report examples/release_gate_suite.json --rerun --output-dir .eval_status --json` | 0 | JSON result envelope includes `"ok":true` |
 | `kujo run main.kujo report examples/release_gate_suite.json --rerun --output-dir .eval_status --format junit` | 0 | Generates `.eval_status/eval-report.xml` |
 | `kujo run main.kujo report examples/release_gate_suite.json --rerun --output-dir .eval_status --format tap` | 0 | Generates `.eval_status/eval-report.tap` |
-| `kujo test --update --runtime vm && kujo test` | 0 | Test suite runner reports all configured test files passing after generating ignored local baselines |
-| `kujo test --update --runtime vm && kujo test --runtime vm` | 0 | VM runtime reports all 7 test suites passing after generating ignored local baselines |
+| `kujo test --update --runtime vm && kujo test` | 0 | Checks fixture-output parity after generating ignored local baselines |
+| `kujo test --update --runtime vm && kujo test --runtime vm` | 0 | Checks VM fixture-output parity after generating ignored local baselines |
+
+`kujo test` compares fixture output. Use `kujo test-run` to execute the assertions
+inside a test suite. CI runs the contract, coverage, CLI integration, control
+contract, and Watchdog telemetry assertion suites explicitly:
+
+```bash
+kujo test-run tests/contract_tests.kujo -v
+kujo test-run tests/coverage_tests.kujo -v
+kujo test-run tests/cli_integration_tests.kujo -v
+kujo test-run tests/control_contract_tests.kujo -v
+kujo test-run tests/watchdog_telemetry_tests.kujo -v
+```
 
 ## Check Types
 
@@ -565,7 +580,14 @@ The test will run up to 3 times (1 initial + 2 retries) and pass if any attempt 
 
 ## Contract Version
 
-Eval uses a `describe_module()` function for runtime contract discovery. Call it from any Kujo script:
+Eval exports `describe_module()` from `src.eval_core` for runtime contract discovery. Import that library module from Kujo scripts; `main.kujo` is an executable CLI entrypoint and runs its dispatcher when loaded.
+
+```kujo
+from src.eval_core import describe_module
+print(to_json(describe_module()))
+```
+
+For CLI version discovery:
 
 ```bash
 kujo run main.kujo version

@@ -213,7 +213,7 @@ func prune_aux_backup_artifacts(output_dir, max_files) {
     ri := 0
     while ri < remove_count {
         try {
-            remove_file(output_dir + "/" + sorted[ri])
+            delete_file(output_dir + "/" + sorted[ri])
         } except err {}
         ri := ri + 1
     }
@@ -549,7 +549,7 @@ func command_run(parsed) {
     dry_run_mode := dict_get_or(flags, "dry_run", false) == true
     no_color_mode := dict_get_or(flags, "no_color", false) == true
     summary_only_mode := dict_get_or(flags, "summary-only", false) == true
-    if summary_only_mode {
+    if summary_only_mode || is_json {
         quiet_mode = true
     }
     repeat_str := normalize_string(dict_get_or(flags, "repeat", "1"), "1")
@@ -879,6 +879,7 @@ func command_report(parsed) {
 
     if loaded_from_cache == false {
         results = run_suite(config_path, {
+            "quiet": bool_flag(dict_get_or(flags, "json", false), false),
             "policy_stage": normalize_string(dict_get_or(flags, "policy-stage", ""), ""),
             "output_dir_override": output_dir,
             "snapshot_dir_override": snapshot_dir
@@ -1452,16 +1453,4 @@ if subcommand == "init" {
     print_lines(["Unknown command: " + subcommand, ""])
     print_help()
     exit(1)
-}
-
-export func describe_module() {
-    return {
-        "module": "eval",
-        "description": "Evaluation framework for AI-native software",
-        "contract_version": contract_version(),
-        "check_count": len(KNOWN_CHECKS()),
-        "commands": ["init", "run", "report", "compare", "list-checks", "snapshots", "version", "watch", "lint", "policy-explain", "diff", "export", "verify-manifest", "completion"],
-        "source_modules": ["common", "cli", "config", "checks", "eval_core", "report", "snapshot"],
-        "report_formats": ["md", "html", "ndjson", "junit", "tap"]
-    }
 }

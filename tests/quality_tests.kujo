@@ -1,6 +1,7 @@
 # Quality test suite — fuzz, property-based, and pipeline integration tests.
 
 test_setup {
+    from tests.helpers.support import remove_test_path
 	from src.common import dict_get_or
 	from src.config import validate_config
 	from src.eval_core import run_suite
@@ -70,5 +71,5 @@ test "integration: run pipeline feeds every report contract" {
 	assert_true(contains(tap, "1..1") == 1)
 	assert_true(contains(tap, "ok 1 - t1") == 1)
 
-	try { remove_file(".eval_integ_test.json") } except err {}
+	try { remove_test_path(".eval_integ_test.json") } except err {}
 }

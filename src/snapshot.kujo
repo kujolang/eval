@@ -38,7 +38,7 @@ export func save_snapshot(snapshot_dir, name, content) {
 	}
 
 	file_path := dir + "/" + safe_name + ".snap"
-	try { write_file(file_path, content) } except err {
+	try { write_file(file_path, content, true) } except err {
 		return make_result(false, "Failed to write snapshot: " + file_path, {"path": file_path, "name": safe_name})
 	}
 
@@ -142,7 +142,7 @@ export func delete_snapshot(snapshot_dir, name) {
 
 	if path_exists(file_path) == false { return make_result(false, "Snapshot not found: " + safe_name, {}) }
 
-	try { remove_file(file_path) } except err {
+	try { delete_file(file_path) } except err {
 		return make_result(false, "Failed to delete snapshot: " + file_path, {})
 	}
 

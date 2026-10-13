@@ -1,0 +1,7 @@
+# Tests own these fixture paths. Remove files or empty directories only.
+export func remove_test_path(path) {
+    if path_is_dir(path) {
+        return os_rmdir(path)
+    }
+    return delete_file(path)
+}

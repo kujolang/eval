@@ -8,7 +8,7 @@
 #   run_single_test(test, config) - Run a single test
 #   compare_runs(results_a, results_b) - Compare two run results
 
-from src.config import load_config
+from src.config import load_config, KNOWN_CHECKS
 from src.checks import run_check, run_shell_with_command_policy
 from src.common import make_result, normalize_int, dict_get_or, normalize_string, contains_text
 
@@ -1114,8 +1114,10 @@ export func run_suite(config_path, options) {
 			}
 			ti := ti + 1
 		}
-		print_bullet_items(names)
-		print("Dry run: " + to_string(len(names)) + " tests would be executed")
+		if quiet_mode == false {
+			print_bullet_items(names)
+			print("Dry run: " + to_string(len(names)) + " tests would be executed")
+		}
 		return make_result(true, "", {
 			"suite_name": normalize_string(dict_get_or(config, "name", ""), "unnamed"),
 			"dry_run": true,
@@ -1674,4 +1676,17 @@ export func describe_eval_core_module() {
 		"exports": ["run_suite", "compare_runs", "contract_version", "shuffle_tests", "build_dep_graph", "has_matching_tag"],
 		"contract_version": "2.0.0"
 	}
+}
+
+# Importable contract metadata; importing the CLI entrypoint executes dispatch.
+export func describe_module() {
+    return {
+        "module": "eval",
+        "description": "Evaluation framework for AI-native software",
+        "contract_version": contract_version(),
+        "check_count": len(KNOWN_CHECKS()),
+        "commands": ["init", "run", "report", "compare", "list-checks", "snapshots", "version", "watch", "lint", "policy-explain", "diff", "export", "verify-manifest", "completion"],
+        "source_modules": ["common", "cli", "config", "checks", "eval_core", "report", "snapshot"],
+        "report_formats": ["md", "html", "ndjson", "junit", "tap"]
+    }
 }

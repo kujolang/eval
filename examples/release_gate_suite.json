@@ -21,7 +21,7 @@
       "check": "file_size_greater_than",
       "params": {
         "path": "kennel.toml",
-        "expected": 100
+        "bytes": 100
       }
     }
   ]
