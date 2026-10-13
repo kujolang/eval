@@ -282,6 +282,9 @@ Expected output signal:
 Common follow-ups:
 
 ```bash
+# Create your own suite (writes eval.json in the current directory).
+kujo run main.kujo init --name my-suite
+
 # Compact human summary
 kujo run main.kujo run examples/release_gate_suite.json --output-dir .eval_quickstart --summary-only
 
@@ -565,7 +568,14 @@ The test will run up to 3 times (1 initial + 2 retries) and pass if any attempt 
 
 ## Contract Version
 
-Eval uses a `describe_module()` function for runtime contract discovery. Call it from any Kujo script:
+Eval exports `describe_module()` from `src.eval_core` for runtime contract discovery. Import that library module from Kujo scripts; `main.kujo` is an executable CLI entrypoint and runs its dispatcher when loaded.
+
+```kujo
+from src.eval_core import describe_module
+print(to_json(describe_module()))
+```
+
+For CLI version discovery:
 
 ```bash
 kujo run main.kujo version

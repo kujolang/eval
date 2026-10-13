@@ -1101,7 +1101,8 @@ export func check_json_matches_shape(params) {
 	required_keys := []
 	if type(required_keys_raw) == "array" {
 		required_keys = required_keys_raw
-	} else if expected_shape != "" {
+	}
+	if len(required_keys) == 0 && expected_shape != "" {
 		parts := split(expected_shape, ",")
 		k := 0
 		while k < len(parts) {
@@ -1881,7 +1882,7 @@ export func check_file_line_count(params) {
 	if dict_get_or(content_result, "ok", false) == false {
 		return make_check_error("file_line_count", "Failed to read file", {"path": path})
 	}
-	content := normalize_string(dict_get_or(content_result, "content", ""), "")
+	content := dict_get_or(content_result, "content", "")
 
 	line_count := 1
 	ci := 0

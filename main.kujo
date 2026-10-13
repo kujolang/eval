@@ -213,7 +213,7 @@ func prune_aux_backup_artifacts(output_dir, max_files) {
     ri := 0
     while ri < remove_count {
         try {
-            remove_file(output_dir + "/" + sorted[ri])
+            delete_file(output_dir + "/" + sorted[ri])
         } except err {}
         ri := ri + 1
     }
@@ -1452,16 +1452,4 @@ if subcommand == "init" {
     print_lines(["Unknown command: " + subcommand, ""])
     print_help()
     exit(1)
-}
-
-export func describe_module() {
-    return {
-        "module": "eval",
-        "description": "Evaluation framework for AI-native software",
-        "contract_version": contract_version(),
-        "check_count": len(KNOWN_CHECKS()),
-        "commands": ["init", "run", "report", "compare", "list-checks", "snapshots", "version", "watch", "lint", "policy-explain", "diff", "export", "verify-manifest", "completion"],
-        "source_modules": ["common", "cli", "config", "checks", "eval_core", "report", "snapshot"],
-        "report_formats": ["md", "html", "ndjson", "junit", "tap"]
-    }
 }

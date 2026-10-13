@@ -4,6 +4,7 @@
 # loading/validation, snapshot mechanics, and report generation.
 
 test_setup {
+    from tests.helpers.support import remove_test_path
 	from src.eval_core import run_suite, compare_runs, contract_version
 	from src.config import load_config, validate_config, init_config, KNOWN_CHECKS
 	from src.checks import run_check, check_command_succeeds, check_command_fails
@@ -15,7 +16,7 @@ test_setup {
 	from src.checks import check_file_matches_glob, check_output_matches_glob, check_json_value_equals, check_file_size_greater_than
 	from src.snapshot import save_snapshot, compare_snapshot, list_snapshots, delete_snapshot
 	from src.report import generate_markdown_report, generate_junit_report, generate_tap_report, save_report, print_report
-	from src.common import make_result, make_success_result, make_error_result, contains_text
+	from src.common import make_result, make_success_result, make_error_result, contains_text, dict_get_or
 }
 
 # ===========================================================================
@@ -130,7 +131,7 @@ test "validate_config preserves test execution directives" {
 		}]
 	})
 	assert_true(result["ok"])
-	config := result["config"]
+	config := result["data"]["config"]
 	tdef := config["tests"][0]
 	assert_true(tdef["skip"])
 	assert_equal(tdef["tags"], ["smoke", "fast"])
@@ -147,7 +148,7 @@ test "validate_config preserves suite hooks" {
 		"tests": [{"name": "ok", "check": "file_exists", "params": {"path": "kennel.toml"}}]
 	})
 	assert_true(result["ok"])
-	config := result["config"]
+	config := result["data"]["config"]
 	assert_equal(config["setup"], "echo setup")
 	assert_equal(config["teardown"], "echo teardown")
 	assert_equal(config["before_each"], "echo before")
@@ -305,7 +306,7 @@ test "file_contains finds text in file" {
 	assert_true(result["ok"])
 
 	try {
-		remove_file(".eval_test_tmp.txt")
+		remove_test_path(".eval_test_tmp.txt")
 	} except err {}
 }
 
@@ -318,7 +319,7 @@ test "file_contains fails for missing text" {
 	assert_false(result["ok"])
 
 	try {
-		remove_file(".eval_test_tmp.txt")
+		remove_test_path(".eval_test_tmp.txt")
 	} except err {}
 }
 
@@ -342,7 +343,7 @@ test "file_does_not_contain passes when text absent" {
 	assert_true(result["ok"])
 
 	try {
-		remove_file(".eval_test_tmp.txt")
+		remove_test_path(".eval_test_tmp.txt")
 	} except err {}
 }
 
@@ -355,7 +356,7 @@ test "file_does_not_contain fails when text present" {
 	assert_false(result["ok"])
 
 	try {
-		remove_file(".eval_test_tmp.txt")
+		remove_test_path(".eval_test_tmp.txt")
 	} except err {}
 }
 
@@ -371,7 +372,7 @@ test "file_does_not_contain passes for missing file branch" {
 # ===========================================================================
 
 test "output_contains finds text in command output" {
-	result := check_output_contains({"command": "echo Hello Eval World", "expected": "Eval"})
+	result := check_output_contains({"command": "echo Hello Evaluation World", "expected": "Eval"})
 	assert_true(result["ok"])
 }
 
@@ -413,7 +414,7 @@ test "json_matches_shape validates required keys" {
 	assert_true(len(dict_get_or(result_data, "message", "")) > 0)
 
 	try {
-		remove_file(".eval_test_json.json")
+		remove_test_path(".eval_test_json.json")
 	} except err {}
 }
 
@@ -432,8 +433,13 @@ test "json_matches_shape fails for missing keys" {
 	assert_true(len(dict_get_or(result_data, "message", "")) > 0)
 
 	try {
-		remove_file(".eval_test_json.json")
+		remove_test_path(".eval_test_json.json")
 	} except err {}
+}
+
+test "json_matches_shape rejects missing keys in shape string" {
+    result := check_json_matches_shape({"json": "{\"name\": \"test\"}", "shape": "name, version"})
+    assert_false(result["ok"])
 }
 
 test "json_matches_shape handles shape string" {
@@ -451,7 +457,7 @@ test "json_matches_shape handles shape string" {
 	assert_true(len(dict_get_or(result_data, "message", "")) > 0)
 
 	try {
-		remove_file(".eval_test_json.json")
+		remove_test_path(".eval_test_json.json")
 	} except err {}
 }
 
@@ -477,10 +483,10 @@ test "directory_diff with same directory" {
 	assert_true(len(dict_get_or(result_data, "message", "")) > 0)
 
 	try {
-		remove_file(".eval_test_dir_a/file1.txt")
-		remove_file(".eval_test_dir_b/file1.txt")
-		remove_file(".eval_test_dir_a")
-		remove_file(".eval_test_dir_b")
+		remove_test_path(".eval_test_dir_a/file1.txt")
+		remove_test_path(".eval_test_dir_b/file1.txt")
+		remove_test_path(".eval_test_dir_a")
+		remove_test_path(".eval_test_dir_b")
 	} except err {}
 }
 
@@ -502,10 +508,10 @@ test "directory_diff detects differences" {
 	assert_true(len(dict_get_or(result_data, "message", "")) > 0)
 
 	try {
-		remove_file(".eval_test_dir_c/file1.txt")
-		remove_file(".eval_test_dir_d/file1.txt")
-		remove_file(".eval_test_dir_c")
-		remove_file(".eval_test_dir_d")
+		remove_test_path(".eval_test_dir_c/file1.txt")
+		remove_test_path(".eval_test_dir_d/file1.txt")
+		remove_test_path(".eval_test_dir_c")
+		remove_test_path(".eval_test_dir_d")
 	} except err {}
 }
 
@@ -516,11 +522,11 @@ test "directory_diff detects differences" {
 test "save_snapshot creates a snapshot file" {
 	result := save_snapshot(".eval_test_snapshots", "test_snap", "snapshot content v1")
 	assert_true(result["ok"])
-	assert_true(path_exists(result["path"]) == 1)
+	assert_true(path_exists(result["data"]["path"]) == true)
 
 	try {
-		remove_file(result["path"])
-		remove_file(".eval_test_snapshots")
+		remove_test_path(result["data"]["path"])
+		remove_test_path(".eval_test_snapshots")
 	} except err {}
 }
 
@@ -528,11 +534,11 @@ test "compare_snapshot matches identical content" {
 	save_snapshot(".eval_test_snapshots", "test_match", "exact content")
 
 	result := compare_snapshot(".eval_test_snapshots", "test_match", "exact content")
-	assert_equal(result["match"], 1)
+	assert_equal(result["data"]["match"], 1)
 
 	try {
-		remove_file(".eval_test_snapshots/test_match.snap")
-		remove_file(".eval_test_snapshots")
+		remove_test_path(".eval_test_snapshots/test_match.snap")
+		remove_test_path(".eval_test_snapshots")
 	} except err {}
 }
 
@@ -540,17 +546,17 @@ test "compare_snapshot detects differences" {
 	save_snapshot(".eval_test_snapshots", "test_diff", "expected")
 
 	result := compare_snapshot(".eval_test_snapshots", "test_diff", "actual")
-	assert_equal(result["match"], 0)
+	assert_equal(result["data"]["match"], 0)
 
 	try {
-		remove_file(".eval_test_snapshots/test_diff.snap")
-		remove_file(".eval_test_snapshots")
+		remove_test_path(".eval_test_snapshots/test_diff.snap")
+		remove_test_path(".eval_test_snapshots")
 	} except err {}
 }
 
 test "compare_snapshot reports missing snapshot" {
 	result := compare_snapshot(".eval_test_snapshots", "nonexistent_snap", "content")
-	assert_equal(result["match"], 0)
+	assert_equal(result["data"]["match"], 0)
 }
 
 test "list_snapshots returns snapshots" {
@@ -558,11 +564,11 @@ test "list_snapshots returns snapshots" {
 
 	result := list_snapshots(".eval_test_snapshots")
 	assert_true(result["ok"])
-	assert_true(result["count"] >= 1)
+	assert_true(result["data"]["count"] >= 1)
 
 	try {
-		remove_file(".eval_test_snapshots/list_test_1.snap")
-		remove_file(".eval_test_snapshots")
+		remove_test_path(".eval_test_snapshots/list_test_1.snap")
+		remove_test_path(".eval_test_snapshots")
 	} except err {}
 }
 
@@ -572,10 +578,10 @@ test "delete_snapshot removes snapshot" {
 
 	result := delete_snapshot(".eval_test_snapshots", "to_delete")
 	assert_true(result["ok"])
-	assert_true(path_exists(file_path) == 0)
+	assert_true(path_exists(file_path) == false)
 
 	try {
-		remove_file(".eval_test_snapshots")
+		remove_test_path(".eval_test_snapshots")
 	} except err {}
 }
 
@@ -589,14 +595,14 @@ test "check_snapshot_matches with update flag creates snapshot" {
 		"update": "true"
 	})
 	assert_true(result["ok"])
-	assert_true(contains(result["message"], "updated") == 1 || contains(result["message"], "Snapshot updated") == 1)
+	assert_true(contains(result["data"]["message"], "updated") == 1 || contains(result["data"]["message"], "Snapshot updated") == 1)
 
 	snap_path := snap_dir + "/cli-help-snap.snap"
-	assert_true(path_exists(snap_path) == 1)
+	assert_true(path_exists(snap_path) == true)
 
 	try {
-		remove_file(snap_path)
-		remove_file(snap_dir)
+		remove_test_path(snap_path)
+		remove_test_path(snap_dir)
 	} except err {}
 }
 
@@ -612,7 +618,7 @@ test "check_snapshot_matches reports snapshot write failures" {
 	assert_false(result["ok"])
 	assert_true(contains(result["error"], "Failed to write snapshot") == 1)
 
-	try { remove_file(".eval_snapshot_not_directory") } except err {}
+	try { remove_test_path(".eval_snapshot_not_directory") } except err {}
 }
 
 test "check_snapshot_matches with update flag updates existing snapshot" {
@@ -633,8 +639,8 @@ test "check_snapshot_matches with update flag updates existing snapshot" {
 	assert_equal(updated_content, "new content")
 
 	try {
-		remove_file(snap_path)
-		remove_file(snap_dir)
+		remove_test_path(snap_path)
+		remove_test_path(snap_dir)
 	} except err {}
 }
 
@@ -657,8 +663,8 @@ test "check_snapshot_matches without update compares against stored snapshot" {
 	assert_false(result_diff["ok"])
 
 	try {
-		remove_file(snap_dir + "/compare-test.snap")
-		remove_file(snap_dir)
+		remove_test_path(snap_dir + "/compare-test.snap")
+		remove_test_path(snap_dir)
 	} except err {}
 }
 
@@ -762,8 +768,8 @@ test "compare_runs detects regression" {
 	run_b := {"suite_name": "Run B", "passed": 9, "failed": 3, "total": 12}
 
 	result := compare_runs(run_a, run_b)
-	assert_true(result["regression"])
-	assert_false(result["improvement"])
+	assert_true(result["data"]["regression"])
+	assert_false(result["data"]["improvement"])
 }
 
 test "compare_runs detects improvement" {
@@ -771,8 +777,8 @@ test "compare_runs detects improvement" {
 	run_b := {"suite_name": "Run B", "passed": 8, "failed": 2, "total": 10}
 
 	result := compare_runs(run_a, run_b)
-	assert_false(result["regression"])
-	assert_true(result["improvement"])
+	assert_false(result["data"]["regression"])
+	assert_true(result["data"]["improvement"])
 }
 
 test "compare_runs detects no change" {
@@ -780,8 +786,8 @@ test "compare_runs detects no change" {
 	run_b := {"suite_name": "Run B", "passed": 10, "failed": 0, "total": 10}
 
 	result := compare_runs(run_a, run_b)
-	assert_false(result["regression"])
-	assert_false(result["improvement"])
+	assert_false(result["data"]["regression"])
+	assert_false(result["data"]["improvement"])
 }
 
 # ===========================================================================
@@ -790,7 +796,7 @@ test "compare_runs detects no change" {
 
 test "run_check dispatches to correct handler" {
 	result := run_check("file_exists", {"path": "kennel.toml"})
-	assert_equal(result["check"], "file_exists")
+	assert_equal(result["data"]["check"], "file_exists")
 	assert_true(result["ok"])
 }
 
@@ -809,7 +815,7 @@ test "file_matches_glob finds matching pattern" {
 	} except err {}
 	result := check_file_matches_glob({"path": ".eval_test_glob.txt", "pattern": "SUCCESS"})
 	assert_true(result["ok"])
-	try { remove_file(".eval_test_glob.txt") } except err {}
+	try { remove_test_path(".eval_test_glob.txt") } except err {}
 }
 
 test "file_matches_glob fails for non-matching pattern" {
@@ -818,7 +824,7 @@ test "file_matches_glob fails for non-matching pattern" {
 	} except err {}
 	result := check_file_matches_glob({"path": ".eval_test_glob2.txt", "pattern": "ERROR"})
 	assert_false(result["ok"])
-	try { remove_file(".eval_test_glob2.txt") } except err {}
+	try { remove_test_path(".eval_test_glob2.txt") } except err {}
 }
 
 test "file_matches_glob fails for missing file" {
@@ -855,7 +861,7 @@ test "json_value_equals matches top-level string value" {
 	} except err {}
 	result := check_json_value_equals({"path": ".eval_test_jve.json", "json_path": "status", "expected": "ok"})
 	assert_true(result["ok"])
-	try { remove_file(".eval_test_jve.json") } except err {}
+	try { remove_test_path(".eval_test_jve.json") } except err {}
 }
 
 test "json_value_equals matches nested value" {
@@ -864,7 +870,7 @@ test "json_value_equals matches nested value" {
 	} except err {}
 	result := check_json_value_equals({"path": ".eval_test_jve2.json", "json_path": "user.role", "expected": "admin"})
 	assert_true(result["ok"])
-	try { remove_file(".eval_test_jve2.json") } except err {}
+	try { remove_test_path(".eval_test_jve2.json") } except err {}
 }
 
 test "json_value_equals fails for wrong value" {
@@ -873,7 +879,7 @@ test "json_value_equals fails for wrong value" {
 	} except err {}
 	result := check_json_value_equals({"path": ".eval_test_jve3.json", "json_path": "status", "expected": "ok"})
 	assert_false(result["ok"])
-	try { remove_file(".eval_test_jve3.json") } except err {}
+	try { remove_test_path(".eval_test_jve3.json") } except err {}
 }
 
 # ===========================================================================
@@ -900,7 +906,7 @@ test "file_contains handles Unicode content" {
 	} except err {}
 	result := check_file_contains({"path": ".eval_test_unicode.txt", "expected": "世界"})
 	assert_true(result["ok"])
-	try { remove_file(".eval_test_unicode.txt") } except err {}
+	try { remove_test_path(".eval_test_unicode.txt") } except err {}
 }
 
 test "file_contains handles empty file" {
@@ -909,7 +915,7 @@ test "file_contains handles empty file" {
 	} except err {}
 	result := check_file_contains({"path": ".eval_test_empty.txt", "expected": "anything"})
 	assert_false(result["ok"])
-	try { remove_file(".eval_test_empty.txt") } except err {}
+	try { remove_test_path(".eval_test_empty.txt") } except err {}
 }
 
 test "output_contains handles multi-line output" {
@@ -923,12 +929,12 @@ test "output_contains fails for empty expected" {
 }
 
 test "check_json_matches_shape with inline json param" {
-	result := check_json_matches_shape({"json": "{\"status\":\"ok\"}", "required_keys": ["status"]})
+	result := check_json_matches_shape({"json": "{\"status\":\"ok\"}", "shape": "status"})
 	assert_true(result["ok"])
 }
 
 test "check_json_matches_shape with empty object" {
-	result := check_json_matches_shape({"json": "{}", "required_keys": []})
+	result := check_json_matches_shape({"json": "{}", "shape": ""})
 	assert_true(result["ok"])
 }
 
@@ -942,10 +948,10 @@ test "check_directory_diff with same content different dirs" {
 	result := check_directory_diff({"dir_a": ".eval_edge_a", "dir_b": ".eval_edge_b"})
 	assert_true(result["ok"])
 	try {
-		remove_file(".eval_edge_a/x.txt")
-		remove_file(".eval_edge_b/x.txt")
-		remove_file(".eval_edge_a")
-		remove_file(".eval_edge_b")
+		remove_test_path(".eval_edge_a/x.txt")
+		remove_test_path(".eval_edge_b/x.txt")
+		remove_test_path(".eval_edge_a")
+		remove_test_path(".eval_edge_b")
 	} except err {}
 }
 
@@ -969,10 +975,10 @@ test "run_suite with stop_on_failure halts after first failure" {
 	} except err {}
 
 	results := run_suite(".eval_test_stop.json", {})
-	assert_equal(results["total"], 1)
-	assert_equal(results["failed"], 1)
+	assert_equal(results["data"]["total"], 1)
+	assert_equal(results["data"]["failed"], 1)
 
-	try { remove_file(".eval_test_stop.json") } except err {}
+	try { remove_test_path(".eval_test_stop.json") } except err {}
 }
 
 test "run_suite counts skipped tests" {
@@ -981,11 +987,11 @@ test "run_suite counts skipped tests" {
 	} except err {}
 
 	results := run_suite(".eval_test_skip.json", {})
-	assert_equal(results["total"], 2)
-	assert_equal(results["skipped"], 1)
-	assert_equal(results["passed"], 1)
+	assert_equal(results["data"]["total"], 2)
+	assert_equal(results["data"]["skipped"], 1)
+	assert_equal(results["data"]["passed"], 1)
 
-	try { remove_file(".eval_test_skip.json") } except err {}
+	try { remove_test_path(".eval_test_skip.json") } except err {}
 }
 
 test "run_suite returns error for missing config file" {
@@ -1000,10 +1006,10 @@ test "run_suite with hooks executes all tests" {
 
 	results := run_suite(".eval_test_hooks2.json", {})
 	assert_true(results["ok"])
-	assert_equal(results["total"], 2)
-	assert_equal(results["passed"], 2)
+	assert_equal(results["data"]["total"], 2)
+	assert_equal(results["data"]["passed"], 2)
 
-	try { remove_file(".eval_test_hooks2.json") } except err {}
+	try { remove_test_path(".eval_test_hooks2.json") } except err {}
 }
 
 # ===========================================================================
@@ -1016,13 +1022,14 @@ test "run_suite filters tests by name" {
 	} except err {}
 
 	results := run_suite(".eval_test_filter.json", {"filter": "alpha"})
-	assert_equal(results["total"], 1)
-	assert_equal(results["passed"], 1)
+	assert_equal(results["data"]["total"], 2)
+	assert_equal(results["data"]["skipped"], 1)
+	assert_equal(results["data"]["passed"], 1)
 
 	results_all := run_suite(".eval_test_filter.json", {})
-	assert_equal(results_all["total"], 2)
+	assert_equal(results_all["data"]["total"], 2)
 
-	try { remove_file(".eval_test_filter.json") } except err {}
+	try { remove_test_path(".eval_test_filter.json") } except err {}
 }
 
 test "run_suite excludes tests by name" {
@@ -1031,9 +1038,10 @@ test "run_suite excludes tests by name" {
 	} except err {}
 
 	results := run_suite(".eval_test_exclude.json", {"exclude": "skip"})
-	assert_equal(results["total"], 1)
+	assert_equal(results["data"]["total"], 2)
+	assert_equal(results["data"]["skipped"], 1)
 
-	try { remove_file(".eval_test_exclude.json") } except err {}
+	try { remove_test_path(".eval_test_exclude.json") } except err {}
 }
 
 test "run_suite filters by tags" {
@@ -1042,9 +1050,10 @@ test "run_suite filters by tags" {
 	} except err {}
 
 	results := run_suite(".eval_test_tags.json", {"tags": "smoke"})
-	assert_equal(results["total"], 1)
+	assert_equal(results["data"]["total"], 2)
+	assert_equal(results["data"]["skipped"], 1)
 
-	try { remove_file(".eval_test_tags.json") } except err {}
+	try { remove_test_path(".eval_test_tags.json") } except err {}
 }
 
 test "run_suite honors explicit skip directives" {
@@ -1053,9 +1062,9 @@ test "run_suite honors explicit skip directives" {
 	} except err {}
 
 	results := run_suite(".eval_test_skip.json", {"quiet": true})
-	assert_equal(results["passed"], 0)
-	assert_equal(results["skipped"], 1)
-	try { remove_file(".eval_test_skip.json") } except err {}
+	assert_equal(results["data"]["passed"], 0)
+	assert_equal(results["data"]["skipped"], 1)
+	try { remove_test_path(".eval_test_skip.json") } except err {}
 }
 
 test "run_suite skips tests whose dependency failed" {
@@ -1064,11 +1073,11 @@ test "run_suite skips tests whose dependency failed" {
 	} except err {}
 
 	results := run_suite(".eval_test_deps.json", {"quiet": true})
-	assert_equal(results["failed"], 1)
-	assert_equal(results["passed"], 0)
-	assert_equal(results["skipped"], 1)
-	assert_equal(results["test_results"][1]["message"], "Skipped: dependency failed")
-	try { remove_file(".eval_test_deps.json") } except err {}
+	assert_equal(results["data"]["failed"], 1)
+	assert_equal(results["data"]["passed"], 0)
+	assert_equal(results["data"]["skipped"], 1)
+	assert_equal(results["data"]["test_results"][1]["message"], "Skipped: dependency failed")
+	try { remove_test_path(".eval_test_deps.json") } except err {}
 }
 
 test "run_suite executes all configured hooks" {
@@ -1078,20 +1087,20 @@ test "run_suite executes all configured hooks" {
 
 	results := run_suite(".eval_test_hooks.json", {"quiet": true})
 	assert_true(results["ok"])
-	assert_equal(results["total"], 1)
+	assert_equal(results["data"]["total"], 1)
 	assert_equal(read_file(".eval_hook_trace.txt"), "setup\nbefore\nafter\nteardown\n")
 
-	try { remove_file(".eval_test_hooks.json") } except err {}
-	try { remove_file(".eval_hook_trace.txt") } except err {}
+	try { remove_test_path(".eval_test_hooks.json") } except err {}
+	try { remove_test_path(".eval_hook_trace.txt") } except err {}
 }
 
 test "init_config creates valid config structure" {
 	result := init_config("test-init-suite", "./eval_results", "./snapshots", "basic")
 	assert_true(result["ok"])
-	assert_true(contains(result["message"], "test-init-suite") == 1)
+	assert_true(contains(result["data"]["message"], "test-init-suite") == 1)
 
 	try {
-		remove_file("eval.json")
+		remove_test_path("eval.json")
 	} except err {}
 }
 
@@ -1109,11 +1118,11 @@ test "run_suite results can be serialized and loaded back" {
 	results_json := to_json(results)
 	loaded := parse_json(results_json)
 
-	assert_equal(loaded["suite_name"], "roundtrip-suite")
-	assert_true(loaded["total"] >= 1)
+	assert_equal(loaded["data"]["suite_name"], "roundtrip-suite")
+	assert_true(loaded["data"]["total"] >= 1)
 
 	try {
-		remove_file(".eval_test_config.json")
+		remove_test_path(".eval_test_config.json")
 	} except err {}
 }
 
@@ -1132,13 +1141,13 @@ test "run_suite results saved to file can be loaded for reporting" {
 
 	raw := read_file(".eval_test_output/last_run.json")
 	cached := parse_json(raw)
-	assert_equal(cached["suite_name"], "persist-suite")
-	assert_equal(cached["total"], 1)
+	assert_equal(cached["data"]["suite_name"], "persist-suite")
+	assert_equal(cached["data"]["total"], 1)
 
 	try {
-		remove_file(".eval_test_output/last_run.json")
-		remove_file(".eval_test_output")
-		remove_file(".eval_test_config2.json")
+		remove_test_path(".eval_test_output/last_run.json")
+		remove_test_path(".eval_test_output")
+		remove_test_path(".eval_test_config2.json")
 	} except err {}
 }
 
@@ -1165,11 +1174,11 @@ test "generate_html_report produces valid HTML structure" {
 
 	html := generate_html_report(mock)
 
-	assert_true(contains(html, "<!DOCTYPE html>") == true)
-	assert_true(contains(html, "<html") == true)
-	assert_true(contains(html, "<head>") == true)
-	assert_true(contains(html, "<body>") == true)
-	assert_true(contains(html, "</html>") == true)
+	assert_true(contains_text(html, "<!DOCTYPE html>") == true)
+	assert_true(contains_text(html, "<html") == true)
+	assert_true(contains_text(html, "<head>") == true)
+	assert_true(contains_text(html, "<body>") == true)
+	assert_true(contains_text(html, "</html>") == true)
 }
 
 test "generate_html_report contains suite name in title" {
@@ -1188,8 +1197,8 @@ test "generate_html_report contains suite name in title" {
 	}
 
 	html := generate_html_report(mock)
-	assert_true(contains(html, "html-title-test") == true)
-	assert_true(contains(html, "<title>Eval Report: html-title-test</title>") == true)
+	assert_true(contains_text(html, "html-title-test") == true)
+	assert_true(contains_text(html, "<title>Eval Report: html-title-test</title>") == true)
 }
 
 test "generate_html_report shows pass/fail counts in summary cards" {
@@ -1206,9 +1215,9 @@ test "generate_html_report shows pass/fail counts in summary cards" {
 	}
 
 	html := generate_html_report(mock)
-	assert_true(contains(html, ">3<") == true)
-	assert_true(contains(html, ">2<") == true)
-	assert_true(contains(html, ">1<") == true)
+	assert_true(contains_text(html, ">3<") == true)
+	assert_true(contains_text(html, ">2<") == true)
+	assert_true(contains_text(html, ">1<") == true)
 }
 
 test "generate_html_report shows test names in results table" {
@@ -1227,7 +1236,7 @@ test "generate_html_report shows test names in results table" {
 	}
 
 	html := generate_html_report(mock)
-	assert_true(contains(html, "unique-test-name-xyz") == true)
+	assert_true(contains_text(html, "unique-test-name-xyz") == true)
 }
 
 test "generate_html_report with all passes shows success styling" {
@@ -1247,8 +1256,8 @@ test "generate_html_report with all passes shows success styling" {
 	}
 
 	html := generate_html_report(mock)
-	assert_true(contains(html, "ALL PASSED") == true)
-	assert_true(contains(html, "row-fail") == false)
+	assert_true(contains_text(html, "ALL PASSED") == true)
+	assert_true(contains_text(html, "class=\"row-fail\"") == false)
 }
 
 test "generate_html_report with failures shows collapsible details" {
@@ -1267,13 +1276,13 @@ test "generate_html_report with failures shows collapsible details" {
 	}
 
 	html := generate_html_report(mock)
-	assert_true(contains(html, "<details>") == true)
-	assert_true(contains(html, "<summary>") == true)
-	assert_true(contains(html, "Failure details") == true)
-	assert_true(contains(html, "failing-test") == true)
-	assert_true(contains(html, "<pre>") == true)
-	assert_true(contains(html, "-expected") == true)
-	assert_true(contains(html, "+actual") == true)
+	assert_true(contains_text(html, "<details>") == true)
+	assert_true(contains_text(html, "<summary>") == true)
+	assert_true(contains_text(html, "Failure details") == true)
+	assert_true(contains_text(html, "failing-test") == true)
+	assert_true(contains_text(html, "<pre>") == true)
+	assert_true(contains_text(html, "-expected") == true)
+	assert_true(contains_text(html, "+actual") == true)
 }
 
 test "generate_html_report escapes HTML in test names" {
@@ -1292,8 +1301,8 @@ test "generate_html_report escapes HTML in test names" {
 	}
 
 	html := generate_html_report(mock)
-	assert_true(contains(html, "<script>") == false)
-	assert_true(contains(html, "&lt;script&gt;") == true)
+	assert_true(contains_text(html, "<script>") == false)
+	assert_true(contains_text(html, "&lt;script&gt;") == true)
 }
 
 # ===========================================================================
@@ -1301,7 +1310,7 @@ test "generate_html_report escapes HTML in test names" {
 # ===========================================================================
 
 test "describe_module returns expected structure" {
-	from main import describe_module
+	from src.eval_core import describe_module
 
 	desc := describe_module()
 	assert_equal(desc["module"], "eval")
@@ -1310,7 +1319,7 @@ test "describe_module returns expected structure" {
 	assert_true(type(desc["commands"]) == "array")
 	assert_true(type(desc["source_modules"]) == "array")
 	assert_true(type(desc["report_formats"]) == "array")
-	assert_true(contains(desc["report_formats"][0], "md") == true || contains(desc["report_formats"][1], "md") == true)
+	assert_true(contains_text(desc["report_formats"][0], "md") == true || contains_text(desc["report_formats"][1], "md") == true)
 }
 
 # ===========================================================================
@@ -1328,7 +1337,7 @@ test "run_suite with quiet=true suppresses per-test output" {
 	assert_true(results["ok"])
 	assert_equal(dict_get_or(dict_get_or(results, "data", {}), "total", 0), 1)
 
-	try { remove_file(".eval_test_quiet.json") } except err {}
+	try { remove_test_path(".eval_test_quiet.json") } except err {}
 }
 
 # ===========================================================================
@@ -1345,7 +1354,7 @@ test "run_suite with verbose=true does not crash" {
 	results := run_suite(".eval_test_verbose.json", {"verbose": true})
 	assert_true(results["ok"])
 
-	try { remove_file(".eval_test_verbose.json") } except err {}
+	try { remove_test_path(".eval_test_verbose.json") } except err {}
 }
 
 # ===========================================================================
@@ -1364,7 +1373,7 @@ test "run_suite records duration_ms" {
 	assert_true(results["ok"])
 	assert_true(dict_get_or(results_data, "duration_ms", 0) > 0)
 
-	try { remove_file(".eval_test_time.json") } except err {}
+	try { remove_test_path(".eval_test_time.json") } except err {}
 }
 
 # ===========================================================================
@@ -1382,7 +1391,7 @@ test "retry field on test definition allows retrying failures" {
 	results_data := dict_get_or(results, "data", {})
 	assert_true(results["ok"])
 
-	try { remove_file(".eval_test_retry.json") } except err {}
+	try { remove_test_path(".eval_test_retry.json") } except err {}
 }
 
 # ===========================================================================
@@ -1517,7 +1526,7 @@ test "file_matches_regex matches file content" {
 	try { write_file(".eval_regex_test.txt", "hello 123 world") } except err {}
 	result := check_file_matches_regex({"path": ".eval_regex_test.txt", "pattern": "[0-9]+"})
 	assert_true(result["ok"])
-	try { remove_file(".eval_regex_test.txt") } except err {}
+	try { remove_test_path(".eval_regex_test.txt") } except err {}
 }
 
 test "file_matches_regex detects non-match" {
@@ -1526,7 +1535,7 @@ test "file_matches_regex detects non-match" {
 	try { write_file(".eval_regex_test2.txt", "hello world") } except err {}
 	result := check_file_matches_regex({"path": ".eval_regex_test2.txt", "pattern": "[0-9]+"})
 	assert_false(result["ok"])
-	try { remove_file(".eval_regex_test2.txt") } except err {}
+	try { remove_test_path(".eval_regex_test2.txt") } except err {}
 }
 
 test "file_matches_regex is dispatched by run_check" {
@@ -1590,7 +1599,7 @@ test "command_timing_less_than records elapsed_ms" {
 
 	result := check_command_timing_less_than({"command": "echo hi", "max_ms": 5000})
 	result_data := dict_get_or(result, "data", {})
-	assert_true(dict_get_or(result_data, "elapsed_ms", -1) >= 0)
+	assert_true(dict_get_or(dict_get_or(result_data, "details", {}), "elapsed_ms", -1) >= 0)
 }
 
 # ===========================================================================
@@ -1610,7 +1619,7 @@ test "file_line_count counts lines correctly" {
 	try { write_file(".eval_lines_test.txt", "line1\nline2\nline3\n") } except err {}
 	result := check_file_line_count({"path": ".eval_lines_test.txt", "expected": 4, "comparison": "equals"})
 	assert_true(result["ok"])
-	try { remove_file(".eval_lines_test.txt") } except err {}
+	try { remove_test_path(".eval_lines_test.txt") } except err {}
 }
 
 test "file_line_count supports greater_than comparison" {
@@ -1619,7 +1628,7 @@ test "file_line_count supports greater_than comparison" {
 	try { write_file(".eval_lines_test2.txt", "a\nb\nc\n") } except err {}
 	result := check_file_line_count({"path": ".eval_lines_test2.txt", "expected": 2, "comparison": "greater_than"})
 	assert_true(result["ok"])
-	try { remove_file(".eval_lines_test2.txt") } except err {}
+	try { remove_test_path(".eval_lines_test2.txt") } except err {}
 }
 
 test "file_line_count is dispatched by run_check" {
@@ -1682,7 +1691,7 @@ test "two_files_equal detects identical files" {
 	try { write_file(".eval_eq_a.txt", "same content"); write_file(".eval_eq_b.txt", "same content") } except err {}
 	result := check_two_files_equal({"path_a": ".eval_eq_a.txt", "path_b": ".eval_eq_b.txt"})
 	assert_true(result["ok"])
-	try { remove_file(".eval_eq_a.txt"); remove_file(".eval_eq_b.txt") } except err {}
+	try { remove_test_path(".eval_eq_a.txt"); remove_test_path(".eval_eq_b.txt") } except err {}
 }
 
 test "two_files_equal detects different files" {
@@ -1691,7 +1700,7 @@ test "two_files_equal detects different files" {
 	try { write_file(".eval_diff_a.txt", "content A"); write_file(".eval_diff_b.txt", "content B") } except err {}
 	result := check_two_files_equal({"path_a": ".eval_diff_a.txt", "path_b": ".eval_diff_b.txt"})
 	assert_false(result["ok"])
-	try { remove_file(".eval_diff_a.txt"); remove_file(".eval_diff_b.txt") } except err {}
+	try { remove_test_path(".eval_diff_a.txt"); remove_test_path(".eval_diff_b.txt") } except err {}
 }
 
 test "two_files_equal is dispatched by run_check" {
