@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased
+## [1.1.0] - 2026-10-14
+
+- Portable evaluation-result evidence, Watchdog correlation, repaired configuration and CLI contracts, and redacted persisted command evidence. Package version 1.1.0 retains result contract 2.0.0; requires Kujo 1.8.1.
+
+### Included changes
 
 ### FEATURE
 - Added `evaluation-result.json` using the producer-neutral

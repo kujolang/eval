@@ -1,12 +1,12 @@
 # Eval
 
-[![Version](https://img.shields.io/badge/version-1.0.0-black)](https://github.com/kujolang/eval)
+[![Version](https://img.shields.io/badge/version-1.1.0-black)](https://github.com/kujolang/eval)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
 [![built with Kujo](https://img.shields.io/badge/built%20with-Kujo-white.svg)](https://github.com/kujolang/kujo)
 
 Evaluation framework for AI-native software — deterministic checks for agents, CLIs, files, snapshots, and workflow outputs.
 
-> **v1.0.0 stable release:** 27 checks, 14 CLI commands, 9 test suites.
+> **v1.1.0 stable release:** 27 checks, 14 CLI commands, 9 test suites.
 
 Eval answers the question:
 
