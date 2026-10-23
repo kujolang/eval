@@ -299,7 +299,7 @@ Use `--json` flag for machine-readable output:
 Legacy command examples may show interpreter-first invocation:
 
 ```bash
-kujo run main.kujo --interpreter run --json
+kujo run main.kujo -- run --json
 ```
 
 Current default guidance is VM-first execution:

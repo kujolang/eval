@@ -54,7 +54,7 @@ workflow:
     run: kujo build
   
   - name: eval-gate
-    run: kujo run eval/main.kujo --interpreter run --quiet --json
+    run: kujo run eval/main.kujo -- run --quiet --json
     on_fail: halt
   
   - name: deploy

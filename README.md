@@ -110,7 +110,7 @@ If your shell resolves `kujo` to a different tool, fix your `PATH` before runnin
 Older repository docs and shell snippets may still show interpreter-era commands such as:
 
 ```bash
-kujo run main.kujo --interpreter run <suite>
+kujo run main.kujo -- run <suite>
 ```
 
 Current recommended default is VM-first execution:
