@@ -1,0 +1,40 @@
+from src.snapshot import save_snapshot, compare_snapshot, list_snapshots, delete_snapshot
+
+func require(condition, message) {
+    if !condition { eprint(message); exit(1) }
+}
+
+root := path_join(os_getcwd(), ".eval_snapshot_storage_" + uuid_v4())
+create_dir(root)
+require(save_snapshot(root,"zeta","first")["ok"],"regular snapshot saves")
+require(save_snapshot(root,"zeta","second")["ok"],"regular snapshot replacement succeeds")
+require(compare_snapshot(root,"zeta","second")["ok"],"replacement is readable")
+require(save_snapshot(root,"alpha","small\ncontext")["ok"],"second regular snapshot saves")
+
+write_file(path_join(root,"copy.snap.bak"),"backup",false)
+create_dir(path_join(root,"folder.snap"))
+visible := list_snapshots(root)
+require(visible["ok"] && visible["data"]["snapshots"] == ["alpha.snap","zeta.snap"],"snapshot listing is sorted and includes only regular snapshot files")
+
+changed := compare_snapshot(root,"alpha","changed\ncontext")
+require(changed["data"]["diff"] == "--- expected\n+++ actual\n- small\n+ changed\n  context\n","small snapshot diffs retain their format")
+large := repeat("é", 70000)
+missing := compare_snapshot(root,"missing",large)
+require(byte_length(missing["data"]["diff"]) <= 65536 && contains(missing["data"]["diff"],"snapshot diff truncated") == 1,"missing snapshot diagnostic is bounded in bytes")
+different := compare_snapshot(root,"alpha",large)
+require(byte_length(different["data"]["diff"]) <= 65536 && contains(different["data"]["diff"],"snapshot diff truncated") == 1,"mismatch diagnostic is bounded in bytes")
+
+link := path_join(root,"linked.snap")
+linked := spawn_process(["ln","-s",path_join(root,"zeta.snap"),link],{"timeout_ms":5000,"max_output_bytes":1024})
+require(linked.exitcode == 0,"test link can be created")
+require(!save_snapshot(root,"linked","ignored")["ok"],"snapshot writes require a regular leaf")
+require(!compare_snapshot(root,"linked","second")["ok"],"snapshot reads require a regular leaf")
+require(!delete_snapshot(root,"linked")["ok"],"snapshot deletes require a regular leaf")
+require(compare_snapshot(root,"zeta","second")["ok"],"ordinary snapshot is still readable")
+require(spawn_process(["unlink",link],{"timeout_ms":5000,"max_output_bytes":1024}).exitcode == 0,"owned fixture link removed")
+
+require(delete_snapshot(root,"alpha")["ok"] && delete_snapshot(root,"zeta")["ok"],"regular snapshot deletion works")
+delete_file(path_join(root,"copy.snap.bak"))
+os_rmdir(path_join(root,"folder.snap"))
+os_rmdir(root)
+print("Eval snapshot storage contracts passed")

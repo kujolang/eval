@@ -1,151 +1,159 @@
-# Snapshot management for eval.
-#
-# Snapshots are stored as plain text files in a snapshot directory.
-# Each snapshot is identified by name and stores the expected output.
-#
-# Functions:
-#   save_snapshot(dir, name, content)   - Save/update a snapshot
-#   compare_snapshot(dir, name, content) - Compare content against snapshot
-#   list_snapshots(dir)                 - List all snapshots in a directory
-#   delete_snapshot(dir, name)          - Remove a snapshot
+# Snapshot management for Eval.
 
-from src.common import dict_get_or, normalize_string, contains_text, make_result
+from src.common import normalize_string, make_result
+
+MAX_SNAPSHOT_BYTES := 8388608
+MAX_DIFF_BYTES := 65536
+MAX_SNAPSHOT_FILES := 10000
+DIFF_TRUNCATION := "\n... snapshot diff truncated ...\n"
 
 func sanitize_snapshot_name(name) {
-	result := ""
-	i := 0
-	while i < len(name) {
-		ch := name[i]
-		is_alphanum := (ch >= "a" && ch <= "z") || (ch >= "A" && ch <= "Z") || (ch >= "0" && ch <= "9")
-		if is_alphanum || ch == "-" || ch == "_" || ch == "." {
-			result = result + ch
-		} else {
-			result = result + "_"
-		}
-		i := i + 1
+	return regex_replace(name, "[^A-Za-z0-9_.-]", "_")
+}
+
+func is_link(path) {
+	try { return path_is_symlink(path) } except error { return false }
+}
+
+func unsafe_directory(path) {
+	return is_link(path) || (path_exists(path) == true && !path_is_dir(path))
+}
+
+func clipped_diff(text) {
+	if byte_length(text) <= MAX_DIFF_BYTES { return text }
+	maximum := MAX_DIFF_BYTES - byte_length(DIFF_TRUNCATION)
+	low := 0
+	high := min(len(text), maximum)
+	while low < high {
+		mid := to_int((low + high + 1) / 2)
+		if byte_length(substring(text, 0, mid)) <= maximum { low = mid }
+		else { high = mid - 1 }
 	}
-	return result
+	return substring(text, 0, low) + DIFF_TRUNCATION
 }
 
 export func save_snapshot(snapshot_dir, name, content) {
 	dir := normalize_string(snapshot_dir, "./snapshots")
 	safe_name := sanitize_snapshot_name(normalize_string(name, "unnamed"))
+	file_path := path_join(dir, safe_name + ".snap")
+	details := {"path": file_path, "name": safe_name}
 
+	if type(content) != "string" || byte_length(content) > MAX_SNAPSHOT_BYTES {
+		return make_result(false, "Snapshot content must be text within 8 MiB", details)
+	}
+	if unsafe_directory(dir) || is_link(file_path) || (path_exists(file_path) == true && !path_is_file(file_path)) {
+		return make_result(false, "Failed to write snapshot: expected regular directory and file paths", details)
+	}
 	if path_exists(dir) == false {
-		try { create_dir(dir) } except err {
+		try { create_dir(dir) } except error {
 			return make_result(false, "Failed to create snapshot directory: " + dir, {"name": safe_name})
 		}
 	}
-
-	file_path := dir + "/" + safe_name + ".snap"
-	try { write_file(file_path, content, true) } except err {
-		return make_result(false, "Failed to write snapshot: " + file_path, {"path": file_path, "name": safe_name})
+	try { write_file_atomic(file_path, content, true) } except error {
+		return make_result(false, "Failed to write snapshot: " + file_path, details)
 	}
-
 	return make_result(true, "", {"path": file_path, "name": safe_name, "message": "Snapshot saved: " + safe_name})
 }
 
 export func compare_snapshot(snapshot_dir, name, actual_content) {
 	dir := normalize_string(snapshot_dir, "./snapshots")
 	safe_name := sanitize_snapshot_name(normalize_string(name, "unnamed"))
-	file_path := dir + "/" + safe_name + ".snap"
+	leaf := safe_name + ".snap"
+	file_path := path_join(dir, leaf)
+	details := {"match": 0, "snapshot_path": file_path, "name": safe_name, "diff": "Read error"}
 
+	if type(actual_content) != "string" || byte_length(actual_content) > MAX_SNAPSHOT_BYTES {
+		return make_result(false, "Snapshot comparison input must be text within 8 MiB", details)
+	}
+	if unsafe_directory(dir) || is_link(file_path) || (path_exists(file_path) == true && !path_is_file(file_path)) {
+		return make_result(false, "Snapshot directory and file must be regular paths", details)
+	}
 	if path_exists(file_path) == false {
-		return make_result(false, "No snapshot found for: " + safe_name, {
-			"match": 0, "snapshot_path": file_path, "name": safe_name,
-			"diff": "No snapshot exists. Actual content:\n" + actual_content
-		})
+		details["diff"] = clipped_diff("No snapshot exists. Actual content:\n" + actual_content)
+		return make_result(false, "No snapshot found for: " + safe_name, details)
 	}
 
 	expected := ""
-	try { expected = read_file(file_path) } except err {
-		return make_result(false, "Failed to read snapshot: " + file_path, {"match": 0, "snapshot_path": file_path, "name": safe_name, "diff": "Read error"})
+	try { expected = read_file_beneath(dir, leaf, MAX_SNAPSHOT_BYTES) } except error {
+		return make_result(false, "Failed to read snapshot: " + file_path, details)
 	}
-
 	if expected == actual_content {
 		return make_result(true, "", {"match": 1, "snapshot_path": file_path, "name": safe_name, "message": "Snapshot matches", "diff": ""})
 	}
-
-	diff_text := generate_diff(expected, actual_content)
-	return make_result(false, "Snapshot does not match", {"match": 0, "snapshot_path": file_path, "name": safe_name, "diff": diff_text})
+	details["diff"] = generate_diff(expected, actual_content)
+	return make_result(false, "Snapshot does not match", details)
 }
 
 func generate_diff(expected, actual) {
 	expected_lines := split(expected, "\n")
 	actual_lines := split(actual, "\n")
-
-	result := ""
-	result = result + "--- expected\n"
-	result = result + "+++ actual\n"
-
-	max_lines := len(expected_lines)
-	if len(actual_lines) > max_lines {
-		max_lines = len(actual_lines)
-	}
-
+	header := "--- expected\n+++ actual\n"
+	bytes := byte_length(header)
+	max_lines := max(len(expected_lines), len(actual_lines))
+	# Each emitted line uses at least three bytes including its prefix and newline.
+	parts := range(0, min(max_lines, to_int(MAX_DIFF_BYTES / 3) + 1) + 1)
+	parts[0] = header
 	i := 0
 	while i < max_lines {
 		exp_line := ""
 		act_line := ""
+		if i < len(expected_lines) { exp_line = expected_lines[i] }
+		if i < len(actual_lines) { act_line = actual_lines[i] }
 
-		if i < len(expected_lines) {
-			exp_line = expected_lines[i]
-		}
-		if i < len(actual_lines) {
-			act_line = actual_lines[i]
-		}
-
+		part := ""
 		if exp_line == act_line {
-			result = result + "  " + exp_line + "\n"
+			part = "  " + exp_line + "\n"
 		} else {
-			if i < len(expected_lines) {
-				result = result + "- " + expected_lines[i] + "\n"
-			}
-			if i < len(actual_lines) {
-				result = result + "+ " + actual_lines[i] + "\n"
-			}
+			if i < len(expected_lines) { part = "- " + exp_line + "\n" }
+			if i < len(actual_lines) { part = part + "+ " + act_line + "\n" }
 		}
-
-		i := i + 1
+		bytes = bytes + byte_length(part)
+		parts[i + 1] = part
+		if bytes > MAX_DIFF_BYTES { return clipped_diff(join(slice(parts, 0, i + 2), "")) }
+		i = i + 1
 	}
-
-	return result
+	return join(parts, "")
 }
 
 export func list_snapshots(snapshot_dir) {
 	dir := normalize_string(snapshot_dir, "./snapshots")
-
+	if unsafe_directory(dir) {
+		return make_result(false, "Snapshot directory must be a regular path: " + dir, {"snapshots": []})
+	}
 	if path_exists(dir) == false {
 		return make_result(false, "Snapshot directory not found: " + dir, {"snapshots": []})
 	}
-
-	files := []
-	try { files = list_dir(dir) } except err {
+	page := null
+	try { page = list_dir_page(dir, "", MAX_SNAPSHOT_FILES, ".snap") } except error {
 		return make_result(false, "Failed to list snapshot directory: " + dir, {"snapshots": []})
 	}
-
-	snaps := []
-	i := 0
-	while i < len(files) {
-		f := files[i]
-		if contains_text(f, ".snap") { snaps := push(snaps, f) }
-		i := i + 1
+	if page["truncated"] {
+		return make_result(false, "Snapshot directory exceeds 10000 entries: " + dir, {"snapshots": []})
 	}
-
-	return make_result(true, "", {"snapshots": snaps, "count": len(snaps)})
+	entries := page["entries"]
+	snaps := range(0, len(entries))
+	count := 0
+	for name in entries {
+		path := path_join(dir, name)
+		if path_is_file(path) && !is_link(path) {
+			snaps[count] = name
+			count = count + 1
+		}
+	}
+	return make_result(true, "", {"snapshots": slice(snaps, 0, count), "count": count})
 }
 
 export func delete_snapshot(snapshot_dir, name) {
 	dir := normalize_string(snapshot_dir, "./snapshots")
 	safe_name := sanitize_snapshot_name(normalize_string(name, "unnamed"))
-	file_path := dir + "/" + safe_name + ".snap"
-
-	if path_exists(file_path) == false { return make_result(false, "Snapshot not found: " + safe_name, {}) }
-
-	try { delete_file(file_path) } except err {
+	file_path := path_join(dir, safe_name + ".snap")
+	if unsafe_directory(dir) || is_link(file_path) {
+		return make_result(false, "Snapshot directory and file must be regular paths", {})
+	}
+	if !path_is_file(file_path) { return make_result(false, "Snapshot not found: " + safe_name, {}) }
+	try { delete_file(file_path) } except error {
 		return make_result(false, "Failed to delete snapshot: " + file_path, {})
 	}
-
 	return make_result(true, "", {"message": "Snapshot deleted: " + safe_name})
 }
 
