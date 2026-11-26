@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### FIX
+
+- Save snapshot updates atomically, limit mismatch output to 64 KiB, list only regular snapshots in filename order, and reject symlink leaves.
+- Require the release suite process to exit successfully and verify its artifact checksums before accepting its summary.
+- Use temporary path templates that work with both BSD and GNU `mktemp`.
+
 ## [1.1.0] - 2026-10-14
 
 - Portable evaluation-result evidence, Watchdog correlation, repaired configuration and CLI contracts, and redacted persisted command evidence. Package version 1.1.0 retains result contract 2.0.0; requires Kujo 1.8.1.

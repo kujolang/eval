@@ -83,7 +83,7 @@ run_benchmark_suite_duration_ms() {
     label="$1"
     config_path="$2"
     out_dir=".eval_bench_${label}_gate"
-    log_file="$(mktemp "${TMPDIR:-/tmp}/kujo-eval-bench-${label}.XXXXXX.log")"
+    log_file="$(mktemp "${TMPDIR:-/tmp}/kujo-eval-bench-${label}.log.XXXXXX")"
 
     rm -rf "$out_dir"
     if ! "$KUJO_BIN" run main.kujo run "$config_path" --output-dir "$out_dir" --summary-only > "$log_file" 2>&1; then
@@ -141,7 +141,7 @@ BENCH_TREND_FILE="eval_results/benchmark_trend.csv"
 if [ ! -f "$BENCH_TREND_FILE" ]; then
     echo "timestamp,benchmark_suite_ms,medium_suite_ms,large_suite_ms,io_heavy_suite_ms" > "$BENCH_TREND_FILE"
 else
-    BENCH_TREND_SANITIZED="$(mktemp "${TMPDIR:-/tmp}/kujo-eval-bench-trend-sanitize.XXXXXX.csv")"
+    BENCH_TREND_SANITIZED="$(mktemp "${TMPDIR:-/tmp}/kujo-eval-bench-trend-sanitize.csv.XXXXXX")"
     awk -F',' '
         NR == 1 { print; next }
         $2 ~ /^[0-9]+(\.[0-9]+)?$/ && $3 ~ /^[0-9]+(\.[0-9]+)?$/ && $4 ~ /^[0-9]+(\.[0-9]+)?$/ && $5 ~ /^[0-9]+(\.[0-9]+)?$/ { print }
@@ -151,7 +151,7 @@ fi
 
 echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ"),$BENCH_SUITE_MS,$MEDIUM_SUITE_MS,$LARGE_SUITE_MS,$IO_HEAVY_SUITE_MS" >> "$BENCH_TREND_FILE"
 
-TREND_TMP_FILE="$(mktemp "${TMPDIR:-/tmp}/kujo-eval-bench-trend.XXXXXX.csv")"
+TREND_TMP_FILE="$(mktemp "${TMPDIR:-/tmp}/kujo-eval-bench-trend.csv.XXXXXX")"
 {
     head -n1 "$BENCH_TREND_FILE"
     tail -n +2 "$BENCH_TREND_FILE" | tail -n "$BENCH_TREND_WINDOW_RUNS"
@@ -308,89 +308,59 @@ fi
 echo "PASS: Version command works"
 echo ""
 
-# Gate 4: Release gate suite runs end-to-end
+# Gate 4: Require process completion before using release evidence.
 echo "[GATE 4] Release gate suite execution..."
-GATE_OUT_DIR=".eval_release_gate"
-GATE_LOG_FILE="$(mktemp "${TMPDIR:-/tmp}/kujo-eval-gate4.XXXXXX.log")"
-GATE_TIMEOUT_SECONDS="${KUJO_EVAL_GATE_TIMEOUT_SECONDS:-120}"
-rm -rf "$GATE_OUT_DIR"
+run_release_gate() (
+    local_timeout="${KUJO_EVAL_GATE_TIMEOUT_SECONDS:-120}"
+    if ! [[ "$local_timeout" =~ ^[0-9]{1,5}$ ]] || [ "$local_timeout" -lt 1 ]; then
+        echo "FAIL: KUJO_EVAL_GATE_TIMEOUT_SECONDS must be a positive integer"
+        return 1
+    fi
 
-"$KUJO_BIN" run main.kujo run examples/release_gate_suite.json --output-dir "$GATE_OUT_DIR" --summary-only > "$GATE_LOG_FILE" 2>&1 &
-GATE_PID=$!
+    scratch="$(mktemp -d "${TMPDIR:-/tmp}/kujo-eval-gate4.XXXXXX")"
+    suite_pid=""
+    trap 'find "$scratch" -depth -delete' EXIT
+    gate_output="$scratch/results"
+    gate_log="$scratch/run.log"
 
-gate_success=0
-gate_timed_out=0
-gate_start_epoch="$(date +%s)"
-
-while true; do
-
-    if [ -f "$GATE_OUT_DIR/summary.json" ] && [ -f "$GATE_OUT_DIR/artifact-manifest.json" ]; then
-        if grep -q '"status":"PASS"' "$GATE_OUT_DIR/summary.json" && grep -q '"artifacts"' "$GATE_OUT_DIR/artifact-manifest.json"; then
-            gate_success=1
-            break
+    "$KUJO_BIN" run main.kujo run examples/release_gate_suite.json \
+        --output-dir "$gate_output" --summary-only --artifact-checksums > "$gate_log" 2>&1 &
+    suite_pid=$!
+    start_seconds=$SECONDS
+    while kill -0 "$suite_pid" 2>/dev/null; do
+        if [ "$((SECONDS - start_seconds))" -ge "$local_timeout" ]; then
+            kill -KILL "$suite_pid" 2>/dev/null || true
+            wait "$suite_pid" 2>/dev/null || true
+            echo "FAIL: Release gate suite exceeded ${local_timeout}s before process completion"
+            tail -n 40 "$gate_log"
+            return 1
         fi
-    fi
+        sleep 0.05
+    done
 
-    if ! kill -0 "$GATE_PID" 2>/dev/null; then
-        break
-    fi
-
-    gate_now_epoch="$(date +%s)"
-    gate_elapsed_seconds=$((gate_now_epoch - gate_start_epoch))
-    if [ "$gate_elapsed_seconds" -ge "$GATE_TIMEOUT_SECONDS" ]; then
-        gate_timed_out=1
-        break
-    fi
-
-    sleep 0.05
-done
-
-if [ "$gate_success" -eq 1 ]; then
-    if kill -0 "$GATE_PID" 2>/dev/null; then
-        kill "$GATE_PID" 2>/dev/null || true
-    fi
-    wait "$GATE_PID" 2>/dev/null || true
-else
-    if [ "$gate_timed_out" -eq 1 ]; then
-        echo "FAIL: Release gate suite watchdog timed out after ${GATE_TIMEOUT_SECONDS}s before PASS artifacts were produced"
+    if wait "$suite_pid"; then
+        :
     else
-        if wait "$GATE_PID"; then
-            gate_exit_code=0
-        else
-            gate_exit_code=$?
-        fi
-        echo "FAIL: Release gate suite execution command returned non-zero (exit $gate_exit_code)"
+        suite_status=$?
+        echo "FAIL: Release gate suite process exited $suite_status"
+        tail -n 40 "$gate_log"
+        return 1
     fi
-    if kill -0 "$GATE_PID" 2>/dev/null; then
-        kill "$GATE_PID" 2>/dev/null || true
-    fi
-    wait "$GATE_PID" 2>/dev/null || true
-    if [ -f "$GATE_LOG_FILE" ]; then
-        tail -n 40 "$GATE_LOG_FILE"
-    fi
-    exit 1
-fi
 
-if [ -f "$GATE_LOG_FILE" ] && ! grep -q "Summary: PASS" "$GATE_LOG_FILE"; then
-    echo "FAIL: Release gate suite output missing PASS summary"
-    tail -n 40 "$GATE_LOG_FILE"
-    exit 1
-fi
-if [ ! -f "$GATE_OUT_DIR/summary.json" ]; then
-    echo "FAIL: Missing summary artifact: $GATE_OUT_DIR/summary.json"
-    exit 1
-fi
-if [ ! -f "$GATE_OUT_DIR/artifact-manifest.json" ]; then
-    echo "FAIL: Missing artifact manifest: $GATE_OUT_DIR/artifact-manifest.json"
-    exit 1
-fi
-if ! grep -q '"artifacts"' "$GATE_OUT_DIR/artifact-manifest.json"; then
-    echo "FAIL: Artifact manifest missing artifacts payload"
-    exit 1
-fi
+    if ! grep -q 'Summary: PASS' "$gate_log" ||
+       ! grep -q '"status":"PASS"' "$gate_output/summary.json"; then
+        echo "FAIL: Release gate suite did not produce a passing summary"
+        tail -n 40 "$gate_log"
+        return 1
+    fi
+    if ! "$KUJO_BIN" run main.kujo verify-manifest --output-dir "$gate_output" --json > "$scratch/verify.log" 2>&1; then
+        echo "FAIL: Release gate artifact checksum verification failed"
+        tail -n 40 "$scratch/verify.log"
+        return 1
+    fi
+)
+run_release_gate
 echo "PASS: Release gate suite executes successfully"
-rm -rf "$GATE_OUT_DIR"
-rm -f "$GATE_LOG_FILE"
 echo ""
 
 # Gate 5: List checks shows all 20 types
