@@ -22,6 +22,13 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Verify README count parity
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x scripts/verify_readme_counts.sh
+          bash scripts/verify_readme_counts.sh
+
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@6d653acede28d24f02e3cd41383119e8b1b35921
         with:
@@ -65,13 +72,6 @@ jobs:
           set -euo pipefail
           test -f LICENSE
           grep -q '^license = "MIT"' kennel.toml
-
-      - name: Verify README count parity
-        shell: bash
-        run: |
-          set -euo pipefail
-          chmod +x scripts/verify_readme_counts.sh
-          bash scripts/verify_readme_counts.sh
 
       - name: Verify import boundaries
         shell: bash

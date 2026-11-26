@@ -443,7 +443,7 @@ echo ""
 
 # Gate 12: README command parity
 echo "[GATE 12] README command parity..."
-if ! bash scripts/verify_docs_command_parity.sh; then
+if ! bash scripts/verify_docs_command_parity.sh || ! bash scripts/verify_readme_counts.sh; then
     echo "FAIL: README command parity check failed"
     exit 1
 fi

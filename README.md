@@ -6,7 +6,7 @@
 
 Evaluation framework for AI-native software — deterministic checks for agents, CLIs, files, snapshots, and workflow outputs.
 
-> **v1.1.0 stable release:** 27 checks, 14 CLI commands, 9 test suites.
+> **v1.1.0** · 27 checks, 14 CLI commands, 10 test suites on main.
 
 Eval answers the question:
 
@@ -645,7 +645,7 @@ The result envelope contract (`{ok, error, data}`) is stable since v2.0.0 and us
 - `src/eval_core.kujo`: Core eval engine, suite runner, compare_runs
 - `src/report.kujo`: Markdown, HTML, JUnit XML, TAP, and NDJSON report generation
 - `src/snapshot.kujo`: Snapshot management (save, compare, diff, list, delete)
-- `tests/`: 7 test suites — contract, security, CLI integration, coverage, benchmark, quality, stress
+- `tests/`: contract, control, CLI integration, coverage, security, snapshot storage, Watchdog telemetry, benchmark, quality, and stress suites
 - `examples/`: Example eval suites (basic, release-gate, self-check, snapshot)
 - `schema/eval-suite.schema.json`: JSON Schema for VSCode autocomplete + validation
 - `docs/`: Architecture, agent notes, ecosystem integration, roadmaps
